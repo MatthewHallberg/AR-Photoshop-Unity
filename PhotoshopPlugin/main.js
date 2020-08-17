@@ -17,20 +17,14 @@
 
 	function init(gen) {
 		generator = gen;
-		generator.addMenuItem("connection", "Open Connection", true, false);
-		generator.addMenuItem("color", "Change Color", true, false);
+		generator.addMenuItem("connection", "Connect", true, false);
+		generator.addMenuItem("message", "Send Message", true, false);
 		generator.onPhotoshopEvent("generatorMenuChanged", OnMenuClicked);
 		generator.onPhotoshopEvent("closedDocument", OnDocumentClosed);
 	}
 
-	function ChangeRandomColor(){
-		console.log("MENU CLICKED");
-		var str = "var color = app.foregroundColor; \
-			color.rgb.red = " + Math.floor(Math.random() * 255) + "; \
-			color.rgb.green = " + Math.floor(Math.random() * 255) + "; \
-			color.rgb.blue = " + Math.floor(Math.random() * 255) + "; \
-			app.foregroundColor = color;";
-		generator.evaluateJSXString(str);
+	function SendTempMessage(){
+		StartChildProcess("SendMessage.js");
 	}
 
 	function MoveImage(amount){
@@ -55,7 +49,7 @@
 		return cp.fork(dirPath);
 	}
 
-	function OnConnectButtonPressed(){
+	function StartRecieveMessageProcess(){
 		if (recieveMessage == null){
 			recieveMessage = StartChildProcess("RecieveMessage.js");
 			//listen for messages from child process
@@ -65,17 +59,21 @@
 		}
 	}
 
+	function OnConnectButtonPressed(){
+		StartRecieveMessageProcess();
+	}
+
 	function OnDocumentClosed(e){
 		if (recieveMessage != null){
 			recieveMessage.kill();
 			recieveMessage = null;
-			console.log("killed message script");
+			console.log("killed server socket");
 		}
 	}
 
 	function OnMenuClicked(e){
-		if (e.generatorMenuChanged.name == "color"){
-			ChangeRandomColor();
+		if (e.generatorMenuChanged.name == "message"){
+			SendTempMessage();
 		} else if (e.generatorMenuChanged.name == "connection"){
 			OnConnectButtonPressed();
 		}

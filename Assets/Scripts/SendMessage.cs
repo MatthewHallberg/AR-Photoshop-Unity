@@ -17,13 +17,17 @@ public class SendMessage : MonoBehaviour {
             EnableBroadcast = true
         };
         endPoint = new IPEndPoint(IPAddress.Broadcast, PORT_NUM);
-        Debug.Log("Opening socket...");
+        Debug.Log("server listening on port number: " + PORT_NUM);
+    }
+
+    void CloseSocket() {
+        sock.Close();
+        sock.Dispose();
+        Debug.Log("server socket closed");
     }
 
     void OnApplicationQuit() {
-        sock.Dispose();
-        sock.Close();
-        Debug.Log("Socket closed");
+        CloseSocket();
     }
 
     public void SendPacket(string message) {

@@ -1,6 +1,9 @@
 var udp = require('dgram');
 
-var server = udp.createSocket('udp4');
+var PORT = 2222;
+
+var server = udp.createSocket({type:"udp4", reuseAddr:true});
+server.bind(PORT);
 
 server.on('error',function(error){
   console.log('Error: ' + error);
@@ -8,22 +11,10 @@ server.on('error',function(error){
 });
 
 server.on('message',function(msg,info){
-  console.log('Data received from client : ' + msg.toString());
+  console.log('Data Received: ' + msg.toString());
   process.send(msg.toString());
 });
 
 server.on('listening',function(){
-  var address = server.address();
-  var port = address.port;
-  var family = address.family;
-  var ipaddr = address.address;
-  console.log('Server is listening at port' + port);
-  console.log('Server ip :' + ipaddr);
-  console.log('Server is IP4/IP6 : ' + family);
+  console.log('server listening at port:' + PORT);
 });
-
-server.on('close',function(){
-  console.log('Socket closed');
-});
-
-server.bind(2222);

@@ -5,7 +5,7 @@ using System.Net;
 
 public class RecieveMessage : MonoBehaviour {
 
-    const int PORT_NUM = 2222;
+    const int PORT_NUM = 2223;
 
     public delegate void OnMessageRecieved(string result);
     public static OnMessageRecieved messageRecieved;
@@ -16,7 +16,7 @@ public class RecieveMessage : MonoBehaviour {
     void Start() {
         // Create UDP client
         receiver = new UdpClient(PORT_NUM);
-        Debug.Log("listening on port number: " + PORT_NUM);
+        Debug.Log("client listening on port number: " + PORT_NUM);
         receiver.BeginReceive(DataReceived, receiver);
     }
 
@@ -28,9 +28,14 @@ public class RecieveMessage : MonoBehaviour {
         }
     }
 
-    void OnApplicationQuit() {
+    void CloseSocket() {
         receiver.Close();
         receiver.Dispose();
+        Debug.Log("client socket closed");
+    }
+
+    void OnApplicationQuit() {
+        CloseSocket();
     }
 
     // This is called whenever data is received
