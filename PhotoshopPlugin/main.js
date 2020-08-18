@@ -12,27 +12,65 @@
 
 	"use strict";
 
+	var udp = require('dgram');
+	var tcp = require('net');
+
 	var generator;
 	var recieveMessage;
+	var tcpConnection;
 
 	function init(gen) {
 		generator = gen;
 		generator.addMenuItem("connection", "Connect", true, false);
-		generator.addMenuItem("message", "Send Message", true, false);
 		generator.onPhotoshopEvent("generatorMenuChanged", OnMenuClicked);
 		generator.onPhotoshopEvent("closedDocument", OnDocumentClosed);
 	}
 
-	function SendTempMessage(){
-		StartChildProcess("SendMessage.js");
+	function ExportLayers(){
+		console.log("exporting layers...");
+
+		var documentId;
+		var layerId;
+
+        generator.getDocumentInfo()
+            .then(function (document) {
+                documentId = document.id;
+                layerId = document.layers[0].id;
+            })
+            .then(function() {
+				return generator.getPixmap(documentId, layerId, { clipToDocumentBounds: true });
+            })
+            .then(function(pixmap) {
+            	console.log("bits per channel: " + pixmap.bitsPerChannel);
+            	console.log("width: " + pixmap.width);
+            	console.log("height: " + pixmap.height);
+            	SendMessageTCP(pixmap.pixels);
+            	//SendMessage(Buffer.from("TESTING123", 'utf8'));
+            });
+	}
+
+	function SendMessageTCP(pixels){
+		console.log("sending pixels...");
+		//socket for sending image via TCP
+		if (tcpConnection != null){
+			tcpConnection.send(pixels);
+		}
+	}	
+
+	function SendMessageUDP(message){
+		var client = udp.createSocket({type:"udp4", reuseAddr:true});
+		client.bind(function() {
+			client.setBroadcast(true);
+			console.log("sending message...");
+			var buffer = new Buffer(message);
+			client.send(buffer, 0, buffer.length, 2223, "255.255.255.255");
+		});
 	}
 
 	function MoveImage(amount){
+		SelectAnyLayer();
 		var str = 
-			"activeDocument.suspendHistory('', ''), sTT = stringIDToTypeID; \
-			(ref = new ActionReference()).putProperty(sTT('historyState'), sTT('currentHistoryState')); \
-			(dsc = new ActionDescriptor()).putReference(sTT('null'), ref), executeAction(sTT('delete'), dsc); \
-			var doc = app.activeDocument; \
+			"var doc = app.activeDocument; \
 			for (var m = 0; m < doc.layers.length; m++){ \
 			var theLayer = doc.layers[m]; \
 			doc.activeLayer = theLayer; \
@@ -41,12 +79,26 @@
 		generator.evaluateJSXString(str);
 	}
 
+	//BUGFIX: case no layer is selected
+	function SelectAnyLayer(){
+		var str = "activeDocument.suspendHistory('', ''), sTT = stringIDToTypeID; \
+			(ref = new ActionReference()).putProperty(sTT('historyState'), sTT('currentHistoryState')); \
+			(dsc = new ActionDescriptor()).putReference(sTT('null'), ref), executeAction(sTT('delete'), dsc);";
+		generator.evaluateJSXString(str);
+	}
+
 	function StartChildProcess(script){
-		//start child process to recieve messages TODO: CLOSE CONNECTION IDIOT
+		//start child process to listen for packets
 		var cp = require('child_process');
 		const path = require('path');
 		const dirPath = path.join(__dirname, script);
 		return cp.fork(dirPath);
+	}
+
+	function StartTCPConnection(){
+		if (tcpConnection == null){
+			tcpConnection = StartChildProcess("TcpConnection.js");
+		}
 	}
 
 	function StartRecieveMessageProcess(){
@@ -60,7 +112,9 @@
 	}
 
 	function OnConnectButtonPressed(){
+		StartTCPConnection();
 		StartRecieveMessageProcess();
+		ExportLayers();
 	}
 
 	function OnDocumentClosed(e){
@@ -72,9 +126,7 @@
 	}
 
 	function OnMenuClicked(e){
-		if (e.generatorMenuChanged.name == "message"){
-			SendTempMessage();
-		} else if (e.generatorMenuChanged.name == "connection"){
+		if (e.generatorMenuChanged.name == "connection"){
 			OnConnectButtonPressed();
 		}
 	}
