@@ -41,16 +41,17 @@
 				return generator.getPixmap(documentId, layerId, { clipToDocumentBounds: true });
             })
             .then(function(pixmap) {
-            	console.log("bits per channel: " + pixmap.bitsPerChannel);
             	console.log("width: " + pixmap.width);
             	console.log("height: " + pixmap.height);
+            	console.log("length: " + pixmap.pixels.length);
+
+            	SendMessageTCP("start," + pixmap.width + "," + pixmap.height + ",");
             	SendMessageTCP(pixmap.pixels);
-            	//SendMessage(Buffer.from("TESTING123", 'utf8'));
+            	SendMessageTCP(",done,");
             });
 	}
 
 	function SendMessageTCP(pixels){
-		console.log("sending pixels...");
 		//socket for sending image via TCP
 		if (tcpConnection != null){
 			tcpConnection.send(pixels);

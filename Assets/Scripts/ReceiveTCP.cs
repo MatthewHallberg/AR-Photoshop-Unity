@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 
@@ -8,14 +9,15 @@ public class ReceiveTCP : MonoBehaviour {
 
     const int PORT_NUM = 2223;
 
-    public delegate void OnMessageRecieved(byte[] result);
+    public delegate void OnMessageRecieved(ImageMessage currImage);
     public static OnMessageRecieved messageRecieved;
 
     TcpListener tcpListener;
     Thread tcpListenerThread;
     TcpClient connectedTcpClient;
-    bool dataWasAvailable;
-    byte[] fullData;
+
+    ImageMessage currImage;
+    bool imageLoaded;
 
     void Start() {
         // Start TcpServer background thread 		
@@ -27,10 +29,9 @@ public class ReceiveTCP : MonoBehaviour {
 
     void Update() {
 
-        if (fullData != null) {
-            print(fullData.Length);
-            messageRecieved?.Invoke(fullData);
-            fullData = null;
+        if (imageLoaded) {
+            imageLoaded = false;
+            messageRecieved?.Invoke(currImage);
         }
     }
 
@@ -60,12 +61,32 @@ public class ReceiveTCP : MonoBehaviour {
                             int length;
                             // Read incomming stream into byte arrary.
                             while ((length = stream.Read(data, 0, data.Length)) != 0) {
-                                memoryStream.Write(data, 0, length);
-                                if (!stream.DataAvailable && dataWasAvailable) {
-                                    fullData = memoryStream.ToArray();
+
+                                //convert bytes to string so we can check them for start and end
+                                //this is probably a terrible idea but I dont want to spend anymore time on this
+                                string message = Encoding.UTF8.GetString(data, 0, data.Length);
+
+                                if (message.Contains("start")) {
+                                    string[] splitMessage = message.Split(',');
+                                    //start of message will contain "imageWidth,imageHeight,...pixels..."
+                                    currImage = new ImageMessage {
+                                        width = int.Parse(splitMessage[1]),
+                                        height = int.Parse(splitMessage[2])
+                                    };
+                                } else if (message.Contains("done")) {
+                                    //end of message will contain "...pixels...,done,...."
+                                    string[] splitMessage = message.Split(',');
+                                    byte[] lastPixels = Encoding.UTF8.GetBytes(splitMessage[0]);
+                                    if (lastPixels.Length > 0) {
+                                       memoryStream.Write(lastPixels, 0, lastPixels.Length);
+                                    }
+                                    currImage.pixels = memoryStream.ToArray();
                                     memoryStream.SetLength(0);
+                                    imageLoaded = true;
+                                } else {
+                                    //not start or end so just write to mem stream
+                                   memoryStream.Write(data, 0, data.Length);
                                 }
-                                dataWasAvailable = stream.DataAvailable;
                             }
                         }
                     }

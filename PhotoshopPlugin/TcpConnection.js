@@ -21,8 +21,8 @@ process.on('message',function(msg,info){
 });
 
 conn.on('close', function() {
-       console.log('connection got closed, will try to reconnect');
-       conn.end();
+     console.log('connection got closed, will try to reconnect');
+     conn.end();
 });
 
 conn.on('end' , function(){
