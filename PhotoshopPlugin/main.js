@@ -12,12 +12,11 @@
 
 	"use strict";
 
-	var udp = require('dgram');
-	var tcp = require('net');
-
 	var generator;
-	var recieveMessage;
+	var listenUDP;
 	var tcpConnection;
+
+	var tcpConnectionMade = false;
 
 	function init(gen) {
 		generator = gen;
@@ -59,13 +58,8 @@
 	}	
 
 	function SendMessageUDP(message){
-		var client = udp.createSocket({type:"udp4", reuseAddr:true});
-		client.bind(function() {
-			client.setBroadcast(true);
-			console.log("sending message...");
-			var buffer = new Buffer(message);
-			client.send(buffer, 0, buffer.length, 2223, "255.255.255.255");
-		});
+		var sendUDP = StartChildProcess("SendUDP.js");
+		sendUDP.send(message);
 	}
 
 	function MoveImage(amount){
@@ -96,34 +90,77 @@
 		return cp.fork(dirPath);
 	}
 
+	function OnTCPConnectionMade(msg){
+		tcpConnectionMade = true;
+		console.log(msg);
+		StartListenForMove();
+		ExportLayers();
+	}
+
 	function StartTCPConnection(){
 		if (tcpConnection == null){
 			tcpConnection = StartChildProcess("TcpConnection.js");
-		}
-	}
-
-	function StartRecieveMessageProcess(){
-		if (recieveMessage == null){
-			recieveMessage = StartChildProcess("RecieveMessage.js");
-			//listen for messages from child process
-			recieveMessage.on('message', function(m) {
-				MoveImage(m);
+			tcpConnection.on('message', function(m) {
+				OnTCPConnectionMade(m);
 			});
 		}
 	}
 
-	function OnConnectButtonPressed(){
+	function StartListenForMove(){
+		StopListenUDP();
+		listenUDP = StartChildProcess("listenUDP.js");
+		//listen for messages from child process
+		listenUDP.on('message', function(m) {
+			MoveImage(m);
+		});
+	}
+
+	function StartListemForUnityIP(){
+		StopListenUDP();
+		listenUDP = StartChildProcess("listenUDP.js");
+		//listen for messages from child process
+		listenUDP.on('message', function(m) {
+			OnUnityIPAddressReceieved(m);
+		});
+	}
+
+	function StopListenUDP(){
+		if (listenUDP != null){
+			listenUDP.kill();
+			listenUDP = null;
+			console.log("stopped udp listener");
+		}
+	}
+
+	function OnUnityIPAddressReceieved(IPAddress){
+		console.log("Got Unity IP address: " + IPAddress);
 		StartTCPConnection();
-		StartRecieveMessageProcess();
-		ExportLayers();
+		tcpConnection.send(IPAddress);
+	}
+
+	function OnPhotoshopIPAddressRecieved(IPAddress){
+		console.log("Got local IP address: " + IPAddress);
+		StartListemForUnityIP();
+		SendMessageUDP(IPAddress);
+	}
+
+	function GetPhotoshopIPAddress(){
+		var GetIPAddressPhotoshop = StartChildProcess("IPAddress.js");
+		GetIPAddressPhotoshop.on('message', function(ip) {
+			OnPhotoshopIPAddressRecieved(ip);
+		});
+	}
+
+	function OnConnectButtonPressed(){
+		if (tcpConnectionMade){
+			ExportLayers();
+		} else {
+			GetPhotoshopIPAddress();
+		}
 	}
 
 	function OnDocumentClosed(e){
-		if (recieveMessage != null){
-			recieveMessage.kill();
-			recieveMessage = null;
-			console.log("killed server socket");
-		}
+		StopListenUDP();
 	}
 
 	function OnMenuClicked(e){

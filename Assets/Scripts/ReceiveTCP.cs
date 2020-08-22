@@ -19,7 +19,7 @@ public class ReceiveTCP : MonoBehaviour {
     ImageMessage currImage;
     bool imageLoaded;
 
-    void Start() {
+    public void StartTCPConnection() {
         // Start TcpServer background thread 		
         tcpListenerThread = new Thread(new ThreadStart(ListenForIncommingRequests)) {
             IsBackground = true
@@ -36,9 +36,11 @@ public class ReceiveTCP : MonoBehaviour {
     }
 
     void CloseSocket() {
-        tcpListenerThread.Abort();
-        tcpListener.Stop();
-        Debug.Log("tcp socket closed");
+        if (tcpListener != null) {
+            tcpListenerThread.Abort();
+            tcpListener.Stop();
+            Debug.Log("tcp socket closed");
+        }
     }
 
     void OnApplicationQuit() {
@@ -47,8 +49,8 @@ public class ReceiveTCP : MonoBehaviour {
 
     void ListenForIncommingRequests() {
         try {
-            // Create listener on localhost port 8052. 			
-            tcpListener = new TcpListener(IPAddress.Parse("127.0.0.1"), PORT_NUM);
+            string photoshopIP = ConnectionManager.Instance.GetPhotoshopIPAddress();
+            tcpListener = new TcpListener(IPAddress.Parse(photoshopIP), PORT_NUM);
             tcpListener.Start();
             Debug.Log("Server is listening");
             while (true) {
@@ -90,6 +92,7 @@ public class ReceiveTCP : MonoBehaviour {
                             }
                         }
                     }
+                    Debug.Log("Connection Closed");
                 }
             }
         } catch (SocketException socketException) {

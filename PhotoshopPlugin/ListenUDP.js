@@ -10,8 +10,9 @@ server.on('error',function(error){
   server.close();
 });
 
+//listen for UDP message
 server.on('message',function(msg,info){
-  console.log('Data Received: ' + msg.toString());
+  console.log('Got Message: ' + msg.toString());
   process.send(msg.toString());
 });
 
