@@ -18,6 +18,8 @@
 
 	var tcpConnectionMade = false;
 
+	var currDocument;
+
 	function init(gen) {
 		generator = gen;
 		generator.addMenuItem("connection", "Connect", true, false);
@@ -28,26 +30,34 @@
 	function ExportLayers(){
 		console.log("exporting layers...");
 
-		var documentId;
-		var layerId;
-
         generator.getDocumentInfo()
-            .then(function (document) {
-                documentId = document.id;
-                layerId = document.layers[0].id;
-            })
-            .then(function() {
-				return generator.getPixmap(documentId, layerId, { clipToDocumentBounds: true });
-            })
-            .then(function(pixmap) {
-            	console.log("width: " + pixmap.width);
-            	console.log("height: " + pixmap.height);
-            	console.log("length: " + pixmap.pixels.length);
+        .then(function (document) {
+        	currDocument = document;
+        	currDocument.layers.forEach(SendLayerPixels);
+        });
+	}
 
-            	SendMessageTCP("start," + pixmap.width + "," + pixmap.height + ",");
-            	SendMessageTCP(pixmap.pixels);
-            	SendMessageTCP(",done,");
-            });
+	function SendLayerPixels(item, index){
+
+		//this delay is very sketchy....I need to figure out this whole TCP thing better
+		// var delay = index * 10;
+
+		// setTimeout(function() {
+
+			generator.getPixmap(currDocument.id, item.id, { clipToDocumentBounds: true })
+			.then(function(pixmap) {
+				console.log("width: " + pixmap.width);
+	        	console.log("height: " + pixmap.height);
+	        	console.log("length: " + pixmap.pixels.length);
+
+	        	var start = new Buffer("@start@" + pixmap.width.toString() + "@" + pixmap.height.toString() + "@");
+	        	var middle = pixmap.pixels;
+	        	var end = new Buffer("@done@");
+	        	SendMessageTCP(Buffer.concat([start, middle, end]));
+			});
+
+
+	    // }, delay);
 	}
 
 	function SendMessageTCP(pixels){

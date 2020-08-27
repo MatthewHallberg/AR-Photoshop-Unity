@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,6 +9,9 @@ using UnityEngine;
 public class ReceiveTCP : MonoBehaviour {
 
     const int PORT_NUM = 2223;
+    const string IMAGE_START = "start";
+    const string IMAGE_END = "done";
+    const char DELIMINATOR = '@';
 
     public delegate void OnMessageRecieved(ImageMessage currImage);
     public static OnMessageRecieved messageRecieved;
@@ -16,9 +20,9 @@ public class ReceiveTCP : MonoBehaviour {
     Thread tcpListenerThread;
     TcpClient connectedTcpClient;
 
+    List<ImageMessage> loadedImages = new List<ImageMessage>();
     ImageMessage currImage;
-    bool imageLoaded;
-    bool wasConnected = false;
+    bool wasConnected;
 
     public void StartTCPConnection() {
         // Start TcpServer background thread 		
@@ -30,9 +34,20 @@ public class ReceiveTCP : MonoBehaviour {
 
     void Update() {
 
-        if (imageLoaded) {
-            imageLoaded = false;
-            messageRecieved?.Invoke(currImage);
+        //if (loadedImages.Count > 0) {
+        //    messageRecieved?.Invoke(loadedImages[0]);
+        //    loadedImages.RemoveAt(0);
+        //}
+
+        //print pixel lengths
+        if (loadedImages.Count > 3) {
+
+            messageRecieved?.Invoke(loadedImages[3]);
+
+            foreach (ImageMessage image in loadedImages) {
+                Debug.Log(image.pixels.Length);
+            }
+            loadedImages.Clear();
         }
 
         if (connectedTcpClient == null) {
@@ -84,26 +99,58 @@ public class ReceiveTCP : MonoBehaviour {
                                 //this is probably a terrible idea but I dont want to spend anymore time on this
                                 string message = Encoding.UTF8.GetString(data, 0, data.Length);
 
-                                if (message.Contains("start")) {
-                                    string[] splitMessage = message.Split(',');
-                                    //start of message will contain "imageWidth,imageHeight,...pixels..."
-                                    currImage = new ImageMessage {
-                                        width = int.Parse(splitMessage[1]),
-                                        height = int.Parse(splitMessage[2])
-                                    };
-                                } else if (message.Contains("done")) {
-                                    //end of message will contain "...pixels...,done,...."
-                                    string[] splitMessage = message.Split(',');
-                                    byte[] lastPixels = Encoding.UTF8.GetBytes(splitMessage[0]);
-                                    if (lastPixels.Length > 0) {
-                                       memoryStream.Write(lastPixels, 0, lastPixels.Length);
-                                    }
-                                    currImage.pixels = memoryStream.ToArray();
-                                    memoryStream.SetLength(0);
-                                    imageLoaded = true;
+                                bool containsStart = message.Contains(IMAGE_START);
+                                bool containsEnd = message.Contains(IMAGE_END);
+
+                                //not start or end so just write to mem stream
+                                if (!containsStart && !containsEnd) {
+                                    memoryStream.Write(data, 0, data.Length);
                                 } else {
-                                    //not start or end so just write to mem stream
-                                   memoryStream.Write(data, 0, data.Length);
+
+                                    //message could contain "....pixels....,done,start,imageWidth,imageHeight,...pixels..."
+                                    string[] splitMessage = message.Split(DELIMINATOR);
+
+                                    //handle starting a new image or ending an existing one
+                                    if (containsEnd) {
+
+                                        int endIndex = System.Array.IndexOf(splitMessage, IMAGE_END);
+                                        //add pixels to mem stream that come before done message
+                                        byte[] precedingPixels = Encoding.UTF8.GetBytes(splitMessage[endIndex - 1]);
+
+                                        if (precedingPixels.Length > 0) {
+                                            memoryStream.Write(precedingPixels, 0, precedingPixels.Length);
+                                        }
+
+                                        //copy pixels to current image
+                                        currImage.pixels = memoryStream.ToArray();
+                                        //add image to list of loading images
+                                        loadedImages.Add(currImage);
+                                        //clear the memory stream
+                                        memoryStream.SetLength(0);
+                                    }
+
+
+
+                                    //check for start and end in same scope because both could be in same buffer
+                                    if (containsStart) {
+
+                                        int startIndex = System.Array.IndexOf(splitMessage, IMAGE_START);
+                                        //add pixels to mem stream that come after start message
+                                        byte[] remainingPixels = Encoding.UTF8.GetBytes(splitMessage[startIndex + 3]);
+
+
+                                        if (remainingPixels.Length > 0) {
+                                            memoryStream.Write(remainingPixels, 0, remainingPixels.Length);
+                                        }
+
+                                        //create new image message
+                                        currImage = new ImageMessage {
+                                            width = int.Parse(splitMessage[startIndex + 1]),
+                                            height = int.Parse(splitMessage[startIndex + 2])
+                                        };
+                                    }
+
+
                                 }
                             }
                         }
