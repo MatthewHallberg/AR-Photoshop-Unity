@@ -90,19 +90,31 @@
 		return cp.fork(dirPath);
 	}
 
-	function OnTCPConnectionMade(msg){
-		tcpConnectionMade = true;
+	function OnTCPMessage(msg){
 		console.log(msg);
-		StartListenForMove();
-		ExportLayers();
+		if (msg == "connected"){
+			tcpConnectionMade = true;
+			StartListenForMove();
+			ExportLayers();
+		} else if (msg == "disconnected"){
+			tcpConnectionMade = false;
+			tcpConnection = null;
+		}
 	}
 
 	function StartTCPConnection(){
 		if (tcpConnection == null){
 			tcpConnection = StartChildProcess("TcpConnection.js");
 			tcpConnection.on('message', function(m) {
-				OnTCPConnectionMade(m);
+				OnTCPMessage(m);
 			});
+		}
+	}
+
+	function CloseTCPConnection(){
+		if (tcpConnection == null){
+			tcpConnection.kill();
+			tcpConnection = null;
 		}
 	}
 
@@ -161,6 +173,7 @@
 
 	function OnDocumentClosed(e){
 		StopListenUDP();
+		CloseTCPConnection();
 	}
 
 	function OnMenuClicked(e){

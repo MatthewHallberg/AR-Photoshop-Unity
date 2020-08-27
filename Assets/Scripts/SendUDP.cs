@@ -18,7 +18,7 @@ public class SendUDP : MonoBehaviour {
         Debug.Log("Sending UDP on port number: " + ConnectionManager.SEND_UDP_PORT);
     }
 
-    void CloseSocket() {
+    public void CloseSocket() {
         if (sock != null) {
             sock.Close();
             sock.Dispose();

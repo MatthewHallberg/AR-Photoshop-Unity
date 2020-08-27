@@ -18,6 +18,7 @@ public class ReceiveTCP : MonoBehaviour {
 
     ImageMessage currImage;
     bool imageLoaded;
+    bool wasConnected = false;
 
     public void StartTCPConnection() {
         // Start TcpServer background thread 		
@@ -33,14 +34,28 @@ public class ReceiveTCP : MonoBehaviour {
             imageLoaded = false;
             messageRecieved?.Invoke(currImage);
         }
+
+        if (connectedTcpClient == null) {
+            return;
+        }
+
+        if (wasConnected && !connectedTcpClient.Connected && tcpListener != null) {
+            CloseSocket();
+        }
     }
 
     void CloseSocket() {
         if (tcpListener != null) {
+            wasConnected = false;
             tcpListenerThread.Abort();
             tcpListener.Stop();
-            Debug.Log("tcp socket closed");
+            tcpListener = null;
         }
+        if (connectedTcpClient != null) {
+            connectedTcpClient.Dispose();
+            connectedTcpClient = null;
+        }
+        Debug.Log("tcp socket closed");
     }
 
     void OnApplicationQuit() {
@@ -55,6 +70,7 @@ public class ReceiveTCP : MonoBehaviour {
             Debug.Log("Server is listening");
             while (true) {
                 using (connectedTcpClient = tcpListener.AcceptTcpClient()) {
+                    wasConnected = true;
                     // Get a stream object for reading
                     using (NetworkStream stream = connectedTcpClient.GetStream()) {
                         //read in 1024 chunks
@@ -92,7 +108,6 @@ public class ReceiveTCP : MonoBehaviour {
                             }
                         }
                     }
-                    Debug.Log("Connection Closed");
                 }
             }
         } catch (SocketException socketException) {

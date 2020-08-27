@@ -17,7 +17,7 @@ function CreateConnection(){
 	conn = net.createConnection(port,host);
 	console.log("connection created at: " + host);
 	conn.on('connect', function() {
-		process.send('connected to server');
+		process.send('connected');
 	});
 
 	conn.on('data' , function (){
@@ -31,10 +31,12 @@ function CreateConnection(){
 	conn.on('close', function() {
      	console.log('connection got closed, will try to reconnect');
     	conn.end();
+    	process.send('disconnected');
 	});
 
 	conn.on('end' , function(){
     	console.log('Requested an end to the TCP connection');
+    	conn.end();
 	});
 }
 
