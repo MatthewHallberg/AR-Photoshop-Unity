@@ -11,16 +11,23 @@ public class ReceiveTCP : MonoBehaviour {
     const int PORT_NUM = 2223;
     const string IMAGE_START = "start";
     const string IMAGE_END = "done";
+    const string SET_START = "new";
+    const string SET_END = "end";
     const char DELIMINATOR = '@';
 
     public delegate void OnMessageRecieved(ImageMessage currImage);
     public static OnMessageRecieved messageRecieved;
+
+    public delegate void OnMessageStarted();
+    public static OnMessageStarted messageStarted;
 
     TcpListener tcpListener;
     Thread tcpListenerThread;
     TcpClient connectedTcpClient;
 
     List<ImageMessage> loadedImages = new List<ImageMessage>();
+    bool imagesComplete = false;
+    bool imagesStarted = false;
     ImageMessage currImage;
     bool wasConnected;
 
@@ -34,20 +41,17 @@ public class ReceiveTCP : MonoBehaviour {
 
     void Update() {
 
-        //if (loadedImages.Count > 0) {
-        //    messageRecieved?.Invoke(loadedImages[0]);
-        //    loadedImages.RemoveAt(0);
-        //}
+        if (imagesStarted) {
+            messageStarted?.Invoke();
+            imagesStarted = false;
+        }
 
-        //print pixel lengths
-        if (loadedImages.Count > 3) {
-
-            messageRecieved?.Invoke(loadedImages[3]);
-
+        if (imagesComplete) {
             foreach (ImageMessage image in loadedImages) {
-                Debug.Log(image.pixels.Length);
+                messageRecieved?.Invoke(image);
             }
             loadedImages.Clear();
+            imagesComplete = false;
         }
 
         if (connectedTcpClient == null) {
@@ -100,10 +104,10 @@ public class ReceiveTCP : MonoBehaviour {
                                 string message = Encoding.UTF8.GetString(data, 0, data.Length);
 
                                 bool containsStart = message.Contains(IMAGE_START);
-                                bool containsEnd = message.Contains(IMAGE_END);
+                                bool containsDone = message.Contains(IMAGE_END);
 
                                 //not start or end so just write to mem stream
-                                if (!containsStart && !containsEnd) {
+                                if (!containsStart && !containsDone) {
                                     memoryStream.Write(data, 0, data.Length);
                                 } else {
 
@@ -111,7 +115,7 @@ public class ReceiveTCP : MonoBehaviour {
                                     string[] splitMessage = message.Split(DELIMINATOR);
 
                                     //handle starting a new image or ending an existing one
-                                    if (containsEnd) {
+                                    if (containsDone) {
 
                                         int endIndex = System.Array.IndexOf(splitMessage, IMAGE_END);
                                         //add pixels to mem stream that come before done message
@@ -127,9 +131,12 @@ public class ReceiveTCP : MonoBehaviour {
                                         loadedImages.Add(currImage);
                                         //clear the memory stream
                                         memoryStream.SetLength(0);
+
+                                        bool containsEnd = message.Contains(SET_END);
+                                        if (containsEnd) {
+                                            imagesComplete = true;
+                                        }
                                     }
-
-
 
                                     //check for start and end in same scope because both could be in same buffer
                                     if (containsStart) {
@@ -148,9 +155,12 @@ public class ReceiveTCP : MonoBehaviour {
                                             width = int.Parse(splitMessage[startIndex + 1]),
                                             height = int.Parse(splitMessage[startIndex + 2])
                                         };
+
+                                        bool containsNew = message.Contains(SET_START);
+                                        if (containsNew) {
+                                            imagesStarted = true;
+                                        }
                                     }
-
-
                                 }
                             }
                         }

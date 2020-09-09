@@ -33,31 +33,42 @@
         generator.getDocumentInfo()
         .then(function (document) {
         	currDocument = document;
-        	currDocument.layers.forEach(SendLayerPixels);
+        	SendLayerBuffer(0);
         });
 	}
 
-	function SendLayerPixels(item, index){
+	function SendLayerBuffer(layerIndex){
 
-		//this delay is very sketchy....I need to figure out this whole TCP thing better
-		// var delay = index * 10;
+		var item = currDocument.layers[layerIndex];
 
-		// setTimeout(function() {
+		generator.getPixmap(currDocument.id, item.id, { clipToDocumentBounds: true })
+		.then(function(pixmap) {
 
-			generator.getPixmap(currDocument.id, item.id, { clipToDocumentBounds: true })
-			.then(function(pixmap) {
-				console.log("width: " + pixmap.width);
-	        	console.log("height: " + pixmap.height);
-	        	console.log("length: " + pixmap.pixels.length);
+        	var startString = "@start@" + pixmap.width.toString() + "@" + pixmap.height.toString() + "@";
+        	var endString = "@done@";
 
-	        	var start = new Buffer("@start@" + pixmap.width.toString() + "@" + pixmap.height.toString() + "@");
-	        	var middle = pixmap.pixels;
-	        	var end = new Buffer("@done@");
-	        	SendMessageTCP(Buffer.concat([start, middle, end]));
-			});
+        	//if this is the first image add new message to beginning
+        	if (layerIndex === 0){
+				startString = "@new@" + startString;
+        	} 
 
+        	//if this is the last image and done message to end
+        	if (layerIndex === currDocument.layers.length - 1){
+				endString = endString +  "end@";
+        	}
 
-	    // }, delay);
+        	var startPixels = new Buffer(startString);
+        	var pixels = pixmap.pixels;
+        	var endPixels = new Buffer(endString);
+
+        	SendMessageTCP(Buffer.concat([startPixels, pixels, endPixels]));
+        	console.log("Sent: " + pixmap.pixels.length);
+
+        	var nextIndex = layerIndex + 1;
+        	if (nextIndex < currDocument.layers.length){
+				SendLayerBuffer(nextIndex);
+        	}
+		});
 	}
 
 	function SendMessageTCP(pixels){
