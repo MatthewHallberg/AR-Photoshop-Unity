@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -101,7 +102,7 @@ public class ReceiveTCP : MonoBehaviour {
 
                                 //convert bytes to string so we can check them for start and end
                                 //this is probably a terrible idea but I dont want to spend anymore time on this
-                                string message = Encoding.UTF8.GetString(data, 0, data.Length);
+                                string message = Encoding.ASCII.GetString(data, 0, data.Length);
 
                                 bool containsStart = message.Contains(IMAGE_START);
                                 bool containsDone = message.Contains(IMAGE_END);
@@ -110,16 +111,17 @@ public class ReceiveTCP : MonoBehaviour {
                                 if (!containsStart && !containsDone) {
                                     memoryStream.Write(data, 0, data.Length);
                                 } else {
-
                                     //message could contain "....pixels....,done,start,imageWidth,imageHeight,...pixels..."
                                     string[] splitMessage = message.Split(DELIMINATOR);
 
                                     //handle starting a new image or ending an existing one
                                     if (containsDone) {
 
-                                        int endIndex = System.Array.IndexOf(splitMessage, IMAGE_END);
+                                        int endIndex = Array.IndexOf(splitMessage, IMAGE_END);
+
                                         //add pixels to mem stream that come before done message
-                                        byte[] precedingPixels = Encoding.UTF8.GetBytes(splitMessage[endIndex - 1]);
+                                        string precedingMessage = splitMessage[endIndex - 1];
+                                        byte[] precedingPixels = Encoding.ASCII.GetBytes(precedingMessage);
 
                                         if (precedingPixels.Length > 0) {
                                             memoryStream.Write(precedingPixels, 0, precedingPixels.Length);
@@ -141,10 +143,11 @@ public class ReceiveTCP : MonoBehaviour {
                                     //check for start and end in same scope because both could be in same buffer
                                     if (containsStart) {
 
-                                        int startIndex = System.Array.IndexOf(splitMessage, IMAGE_START);
-                                        //add pixels to mem stream that come after start message
-                                        byte[] remainingPixels = Encoding.UTF8.GetBytes(splitMessage[startIndex + 3]);
+                                        int startIndex = Array.IndexOf(splitMessage, IMAGE_START);
 
+                                        //add pixels to mem stream that come after start message
+                                        string remainingMessage = splitMessage[startIndex + 3];
+                                        byte[] remainingPixels = Encoding.ASCII.GetBytes(remainingMessage);
 
                                         if (remainingPixels.Length > 0) {
                                             memoryStream.Write(remainingPixels, 0, remainingPixels.Length);

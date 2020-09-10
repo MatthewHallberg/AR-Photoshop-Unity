@@ -48,10 +48,6 @@ public class ConnectionManager : Singleton<ConnectionManager> {
         SendLocalIPAddress();
     }
 
-    public void OnTCPConnectionClosed() {
-
-    }
-
     public void SendUDP(string message) {
         sendUDP.SendPacket(message);
     }
