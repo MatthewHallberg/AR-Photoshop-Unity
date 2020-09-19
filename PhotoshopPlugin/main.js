@@ -41,7 +41,7 @@
 
 		var item = currDocument.layers[layerIndex];
 
-        var options = { clipToDocumentBounds: true, ClipBounds: {left: 0, top: 0, right: 0, botom: 0} };
+        var options = { clipToDocumentBounds: true};
 		generator.getPixmap(currDocument.id, item.id, options)
 		.then(function(pixmap) {
 
@@ -55,7 +55,7 @@
 
         	//if this is the last image and done message to end
         	if (layerIndex === currDocument.layers.length - 1){
-				endString = endString +  "@end@";
+				endString = endString +  "end@";
         	}
 
         	var startPixels = new Buffer(startString);

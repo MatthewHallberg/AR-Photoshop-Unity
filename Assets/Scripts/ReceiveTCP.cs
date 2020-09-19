@@ -49,7 +49,7 @@ public class ReceiveTCP : MonoBehaviour {
 
         if (imagesComplete) {
             foreach (ImageMessage image in loadedImages) {
-                messageRecieved?.Invoke(image);
+               messageRecieved?.Invoke(image);
             }
             loadedImages.Clear();
             imagesComplete = false;
