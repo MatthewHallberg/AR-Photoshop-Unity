@@ -12,7 +12,6 @@ server.on('error',function(error){
 
 //listen for UDP message
 server.on('message',function(msg,info){
-  console.log('Got Message: ' + msg.toString());
   process.send(msg.toString());
 });
 

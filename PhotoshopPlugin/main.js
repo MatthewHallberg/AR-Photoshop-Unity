@@ -85,23 +85,21 @@
 	}
 
 	function MoveImage(amount){
-		SelectAnyLayer();
-		var str = 
-			"var doc = app.activeDocument; \
+		var str = SelectAnyLayer() + 
+			" \ var doc = app.activeDocument; \
 			for (var m = 0; m < doc.layers.length; m++){ \
 			var theLayer = doc.layers[m]; \
 			doc.activeLayer = theLayer; \
 			theLayer.translate(0," + parseFloat(amount) + "); \
-			}";
+			}"
 		generator.evaluateJSXString(str);
 	}
 
 	//BUGFIX: case no layer is selected
 	function SelectAnyLayer(){
-		var str = "activeDocument.suspendHistory('', ''), sTT = stringIDToTypeID; \
+		return "activeDocument.suspendHistory('', ''), sTT = stringIDToTypeID; \
 			(ref = new ActionReference()).putProperty(sTT('historyState'), sTT('currentHistoryState')); \
 			(dsc = new ActionDescriptor()).putReference(sTT('null'), ref), executeAction(sTT('delete'), dsc);";
-		generator.evaluateJSXString(str);
 	}
 
 	function StartChildProcess(script){
@@ -141,6 +139,7 @@
 	}
 
 	function StartListenForMove(){
+		SelectAnyLayer();
 		StopListenUDP();
 		listenUDP = StartChildProcess("listenUDP.js");
 		//listen for messages from child process
