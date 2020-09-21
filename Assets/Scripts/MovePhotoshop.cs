@@ -1,26 +1,74 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MovePhotoshop : MonoBehaviour {
 
-    const float MAX_MOVE_AMOUNT = 8f;
+    const float MOVE_SPEED = 6f;
+    const float MAX_PHOTOSHOP_MOVE = 8f;
+    const float UNITY_DOCUMENT_HANDLE_HEIGHT = 2f;
 
-    public Slider slider;
     float DELAY = .2f;
 
     float currDocValue = 0;
     float currValToSend;
 
+    float photoshopYPos;
+
+    Camera mainCam;
+    Vector3 startPosition;
+    bool shouldMove = true;
+
     void Start() {
-        SetUpSlider();
+        startPosition = transform.localPosition;
+        mainCam = Camera.main;
         StartCoroutine(SendMoveMessageRoutine());
     }
 
-    void SetUpSlider() {
-        slider.minValue = 0;
-        slider.maxValue = MAX_MOVE_AMOUNT;
-        slider.value = 0;
+    void Update() {
+        if (shouldMove) {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
+        }
+
+        CalcPhotoshopPosition();
+    }
+
+   void OnMouseDown() {
+        shouldMove = false;
+    }
+
+    void OnMouseUp() {
+        shouldMove = true;
+    }
+
+    void OnMouseDrag() {
+
+        //get world position of screen touch
+        float distance = transform.position.z - mainCam.transform.position.z;
+        Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance);
+        Vector3 worldTouchPos = Camera.main.ScreenToWorldPoint(mousePos);
+
+        //add axis to current position
+        Vector3 currPosition = transform.position;
+        currPosition.y = worldTouchPos.y;
+
+        //convert to localPosition
+        Vector3 localPos = transform.parent.InverseTransformPoint(currPosition);
+
+        if (localPos.y >= startPosition.y && localPos.y <= startPosition.y + UNITY_DOCUMENT_HANDLE_HEIGHT) {
+            transform.position = currPosition;
+        }
+    }
+
+    void CalcPhotoshopPosition() {
+        //remap handle position to photoshop coordinates
+        float currVal = transform.localPosition.y;
+        float from1 = startPosition.y;
+        float to1 = startPosition.y + UNITY_DOCUMENT_HANDLE_HEIGHT;
+        float from2 = 0;
+        float to2 = MAX_PHOTOSHOP_MOVE;
+
+        photoshopYPos = ExtensionMethods.Remap(currVal, from1, to1, from2, to2);
+        print(photoshopYPos);
     }
 
     public void OnSliderValueChanged(float val) {

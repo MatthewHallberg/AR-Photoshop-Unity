@@ -3,7 +3,7 @@
 public class CreateImage : MonoBehaviour {
 
     const float BASE_SIZE = 1024f;
-    const float Z_DISTANCE = .15f;
+    const float Z_DISTANCE = .01f;
 
     public GameObject imageObject;
 
