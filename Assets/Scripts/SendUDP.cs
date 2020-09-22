@@ -18,6 +18,11 @@ public class SendUDP : MonoBehaviour {
         Debug.Log("Sending UDP on port number: " + ConnectionManager.SEND_UDP_PORT);
     }
 
+    public void SetIPAddress(string photoshopIPAddress) {
+        sock.EnableBroadcast = false;
+        endPoint = new IPEndPoint(IPAddress.Parse(photoshopIPAddress), ConnectionManager.SEND_UDP_PORT);
+    }
+
     public void CloseSocket() {
         if (sock != null) {
             sock.Close();

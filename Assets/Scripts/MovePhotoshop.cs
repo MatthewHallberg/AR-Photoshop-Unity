@@ -4,10 +4,10 @@ using UnityEngine;
 public class MovePhotoshop : MonoBehaviour {
 
     const float MOVE_SPEED = 6f;
-    const float MAX_PHOTOSHOP_MOVE = 8f;
+    const float MAX_PHOTOSHOP_MOVE = 7.5f;
     const float UNITY_DOCUMENT_HANDLE_HEIGHT = 2f;
 
-    float DELAY = .2f;
+    readonly float DELAY = .2f;
 
     float currDocValue = 0;
     float currValToSend;
@@ -68,7 +68,10 @@ public class MovePhotoshop : MonoBehaviour {
         float to2 = MAX_PHOTOSHOP_MOVE;
 
         photoshopYPos = ExtensionMethods.Remap(currVal, from1, to1, from2, to2);
-        print(photoshopYPos);
+
+        float valToSend = photoshopYPos - currDocValue;
+        currValToSend += valToSend;
+        currDocValue = photoshopYPos;
     }
 
     public void OnSliderValueChanged(float val) {
@@ -80,7 +83,7 @@ public class MovePhotoshop : MonoBehaviour {
     IEnumerator SendMoveMessageRoutine() {
         while (true) {
             if (!currValToSend.Equals(0)) {
-                ConnectionManager.Instance.SendUDP((-currValToSend).ToString());
+                ConnectionManager.Instance.SendUDPMessage((-currValToSend).ToString());
                 currValToSend = 0;
             }
             yield return new WaitForSeconds(DELAY);

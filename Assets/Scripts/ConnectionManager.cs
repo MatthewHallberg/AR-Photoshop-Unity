@@ -46,14 +46,16 @@ public class ConnectionManager : Singleton<ConnectionManager> {
         tcp.StartTCPConnection();
         //send our IP address
         SendLocalIPAddress();
+        //specify UDP endpoint
+        sendUDP.SetIPAddress(IPAddress);
     }
 
-    public void SendUDP(string message) {
+    public void SendUDPMessage(string message) {
         sendUDP.SendPacket(message);
     }
 
     void SendLocalIPAddress() {
-        SendUDP(GetLocalIPAddress());
+        sendUDP.SendPacket(GetLocalIPAddress());
     }
 
     string GetLocalIPAddress() {
