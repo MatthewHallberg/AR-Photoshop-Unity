@@ -5,7 +5,7 @@ public class MovePhotoshop : MonoBehaviour {
 
     const float MOVE_SPEED = 6f;
     const float MAX_PHOTOSHOP_MOVE = 7.5f;
-    const float UNITY_DOCUMENT_HANDLE_HEIGHT = 2f;
+    const float UNITY_DOCUMENT_HANDLE_HEIGHT = .2f;
 
     readonly float DELAY = .2f;
 
@@ -26,7 +26,7 @@ public class MovePhotoshop : MonoBehaviour {
 
     void Update() {
         if (shouldMove) {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
+           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
         }
 
         CalcPhotoshopPosition();
@@ -54,16 +54,16 @@ public class MovePhotoshop : MonoBehaviour {
         //convert to localPosition
         Vector3 localPos = transform.parent.InverseTransformPoint(currPosition);
 
-        if (localPos.y >= startPosition.y && localPos.y <= startPosition.y + UNITY_DOCUMENT_HANDLE_HEIGHT) {
+        if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + UNITY_DOCUMENT_HANDLE_HEIGHT) {
             transform.position = currPosition;
         }
     }
 
     void CalcPhotoshopPosition() {
         //remap handle position to photoshop coordinates
-        float currVal = transform.localPosition.y;
-        float from1 = startPosition.y;
-        float to1 = startPosition.y + UNITY_DOCUMENT_HANDLE_HEIGHT;
+        float currVal = transform.localPosition.z;
+        float from1 = startPosition.z;
+        float to1 = startPosition.z + UNITY_DOCUMENT_HANDLE_HEIGHT;
         float from2 = 0;
         float to2 = MAX_PHOTOSHOP_MOVE;
 
