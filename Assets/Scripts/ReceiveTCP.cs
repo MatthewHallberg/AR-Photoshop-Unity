@@ -84,8 +84,7 @@ public class ReceiveTCP : MonoBehaviour {
 
     void ListenForIncommingRequests() {
         try {
-            string photoshopIP = ConnectionManager.Instance.GetPhotoshopIPAddress();
-            tcpListener = new TcpListener(IPAddress.Parse(photoshopIP), PORT_NUM);
+            tcpListener = new TcpListener(IPAddress.Any, PORT_NUM);
             tcpListener.Start();
             Debug.Log("Server is listening");
             while (true) {
