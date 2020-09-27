@@ -1,18 +1,20 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Threading;
 
 public class MovePhotoshop : MonoBehaviour {
 
     const float MOVE_SPEED = 4f;
     const float MAX_PHOTOSHOP_MOVE = 7.5f;
-    const float UNITY_DOCUMENT_HANDLE_HEIGHT = .15f;
+    const float UNITY_DOCUMENT_HANDLE_HEIGHT = .2f;
 
-    readonly float DELAY = .4f;
+    readonly int DELAY_MILLISECONDS = 300;
 
     float currDocValue = 0;
     float currValToSend;
 
     float photoshopYPos;
+
+    Thread sendPositionThread;
 
     Camera mainCam;
     Vector3 startPosition;
@@ -21,7 +23,14 @@ public class MovePhotoshop : MonoBehaviour {
     void Start() {
         startPosition = transform.localPosition;
         mainCam = Camera.main;
-        StartCoroutine(SendMoveMessageRoutine());
+
+        //start message sending routine
+        sendPositionThread = new Thread(SendRoutine);
+        sendPositionThread.Start();
+    }
+
+    void OnApplicationQuit() {
+        sendPositionThread.Abort();
     }
 
     void Update() {
@@ -81,13 +90,13 @@ public class MovePhotoshop : MonoBehaviour {
         currDocValue = val;
     }
 
-    IEnumerator SendMoveMessageRoutine() {
+    void SendRoutine() {
         while (true) {
             if (!currValToSend.Equals(0)) {
                 ConnectionManager.Instance.SendUDPMessage((-currValToSend).ToString());
                 currValToSend = 0;
             }
-            yield return new WaitForSeconds(DELAY);
+            Thread.Sleep(DELAY_MILLISECONDS);
         }
     }
 }
