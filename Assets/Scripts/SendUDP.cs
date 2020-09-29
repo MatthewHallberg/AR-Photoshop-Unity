@@ -39,6 +39,7 @@ public class SendUDP : MonoBehaviour {
         try {
             send_buffer = Encoding.ASCII.GetBytes(message);
             sock.SendTo(send_buffer, endPoint);
+
         } catch (SocketException s) {
             Debug.Log(s);
         }

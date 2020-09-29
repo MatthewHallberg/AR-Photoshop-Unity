@@ -1,4 +1,3 @@
-
 //from generator-core folder
 //node app -f test/plugins
 
@@ -84,22 +83,9 @@
 		sendUDP.send(message);
 	}
 
-	function MoveImage(amount){
-		var str = SelectAnyLayer() + 
-			" \ var doc = app.activeDocument; \
-			for (var m = 0; m < doc.layers.length; m++){ \
-			var theLayer = doc.layers[m]; \
-			doc.activeLayer = theLayer; \
-			theLayer.translate(0," + parseFloat(amount) + "); \
-			}"
-		generator.evaluateJSXString(str);
-	}
-
-	//BUGFIX: case no layer is selected
-	function SelectAnyLayer(){
-		return "activeDocument.suspendHistory('', ''), sTT = stringIDToTypeID; \
-			(ref = new ActionReference()).putProperty(sTT('historyState'), sTT('currentHistoryState')); \
-			(dsc = new ActionDescriptor()).putReference(sTT('null'), ref), executeAction(sTT('delete'), dsc);";
+	function MessageFromUnity(message){
+		var jsxStr = "alert('" + message + "');";
+		generator.evaluateJSXString(jsxStr);
 	}
 
 	function StartChildProcess(script){
@@ -114,8 +100,8 @@
 		console.log(msg);
 		if (msg == "connected"){
 			tcpConnectionMade = true;
-			StartListenForMove();
 			ExportLayers();
+			StartListenForUnityMessages();
 		} else if (msg == "disconnected"){
 			tcpConnectionMade = false;
 			tcpConnection = null;
@@ -138,13 +124,12 @@
 		}
 	}
 
-	function StartListenForMove(){
-		SelectAnyLayer();
+	function StartListenForUnityMessages(){
 		StopListenUDP();
 		listenUDP = StartChildProcess("listenUDP.js");
 		//listen for messages from child process
 		listenUDP.on('message', function(m) {
-			MoveImage(m);
+			MessageFromUnity(m);
 		});
 	}
 

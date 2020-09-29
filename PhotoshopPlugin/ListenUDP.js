@@ -2,7 +2,7 @@ var udp = require('dgram');
 
 var PORT = 2222;
 
-var server = udp.createSocket({type:"udp4", reuseAddr:true});
+var server = udp.createSocket('udp4');
 server.bind(PORT);
 
 server.on('error',function(error){
@@ -11,8 +11,8 @@ server.on('error',function(error){
 });
 
 //listen for UDP message
-server.on('message',function(msg,info){
-  process.send(msg.toString());
+server.on('message',function(msg){
+	process.send(msg.toString());
 });
 
 server.on('listening',function(){

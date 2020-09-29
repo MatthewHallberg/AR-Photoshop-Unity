@@ -22,6 +22,9 @@ public class ReceiveTCP : MonoBehaviour {
     public delegate void OnMessageStarted();
     public static OnMessageStarted messageStarted;
 
+    public delegate void OnMessageCompleted();
+    public static OnMessageCompleted messageComplete;
+
     TcpListener tcpListener;
     Thread tcpListenerThread;
     TcpClient connectedTcpClient;
@@ -53,6 +56,7 @@ public class ReceiveTCP : MonoBehaviour {
             }
             loadedImages.Clear();
             imagesComplete = false;
+            messageComplete?.Invoke();
         }
 
         if (connectedTcpClient == null) {
