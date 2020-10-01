@@ -1,34 +1,47 @@
 ﻿using UnityEngine;
 
-public class MovePhotoshop : MonoBehaviour {
+public class MoveHandle : MonoBehaviour {
 
-    const float MOVE_SPEED = 4f;
+    const float HANDLE_SPEED = 4f;
+    const float IMAGE_SPEED = 10f;
     const float UNITY_DOCUMENT_HANDLE_HEIGHT = .2f;
+
+    public Transform ImageParent;
+    public Transform TransparentImages;
+
+    Vector3 imageTopPos;
+    Vector3 imageBottomPos;
+    Vector3 desiredImagePos;
 
     Camera mainCam;
     Vector3 startPosition;
-    bool shouldMove = true;
+    bool shouldMoveHandle = true;
 
     void Start() {
         startPosition = transform.localPosition;
         mainCam = Camera.main;
+        SetImagePositions();
     }
 
     void Update() {
-        if (shouldMove) {
-           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
+        if (shouldMoveHandle) {
+           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * HANDLE_SPEED);
             if (Vector3.Distance(transform.localPosition, startPosition) < .01) {
                 transform.localPosition = startPosition;
             }
         }
+
+        ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * IMAGE_SPEED);
     }
 
    void OnMouseDown() {
-        shouldMove = false;
+        shouldMoveHandle = false;
+        desiredImagePos = imageTopPos;
     }
 
     void OnMouseUp() {
-        shouldMove = true;
+        shouldMoveHandle = true;
+        desiredImagePos = imageBottomPos;
     }
 
     void OnMouseDrag() {
@@ -49,5 +62,12 @@ public class MovePhotoshop : MonoBehaviour {
         if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + UNITY_DOCUMENT_HANDLE_HEIGHT) {
             transform.localPosition = currPos;
         }
+    }
+
+    void SetImagePositions() {
+        imageTopPos = ImageParent.localPosition;
+        ImageParent.position = TransparentImages.position;
+        imageBottomPos = ImageParent.localPosition;
+        desiredImagePos = imageBottomPos;
     }
 }
