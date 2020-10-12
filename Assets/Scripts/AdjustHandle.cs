@@ -5,6 +5,8 @@ public class AdjustHandle : MonoBehaviour {
     const string OCCLUDER_KEY = "OccluderWidth";
     const string HANDLE_KEY = "HandleHeight";
 
+    const float HANDLE_MIN = .1f;
+
     public Transform Occluder;
 
     void Awake() {
