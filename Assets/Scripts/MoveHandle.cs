@@ -2,16 +2,18 @@
 
 public class MoveHandle : MonoBehaviour {
 
-    const float HANDLE_SPEED = 4f;
-    const float IMAGE_SPEED = 10f;
-    const float UNITY_DOCUMENT_HANDLE_HEIGHT = .2f;
+    const float MOVE_SPEED = 15;
+    const float DOCUMENT_HEIGHT = 1f;
 
     public Transform ImageParent;
     public Transform TransparentImages;
+    public Transform HandleImage;
+    public DistortionController distortion;
 
     Vector3 imageTopPos;
     Vector3 imageBottomPos;
     Vector3 desiredImagePos;
+    Vector3 desiredImageScale = new Vector3(.3f, .3f, .3f);
 
     Camera mainCam;
     Vector3 startPosition;
@@ -25,23 +27,28 @@ public class MoveHandle : MonoBehaviour {
 
     void Update() {
         if (shouldMoveHandle) {
-           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * HANDLE_SPEED);
-            if (Vector3.Distance(transform.localPosition, startPosition) < .01) {
+           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
+            if (Vector3.Distance(transform.localPosition, startPosition) < .1) {
                 transform.localPosition = startPosition;
+                desiredImagePos = imageBottomPos;
+                distortion.ActivateDistortion(false);
             }
         }
 
-        ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * IMAGE_SPEED);
+        ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * MOVE_SPEED);
+        HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredImageScale, Time.deltaTime * MOVE_SPEED);
     }
 
    void OnMouseDown() {
         shouldMoveHandle = false;
         desiredImagePos = imageTopPos;
+        desiredImageScale.x = .2f;
+        distortion.ActivateDistortion(true);
     }
 
     void OnMouseUp() {
         shouldMoveHandle = true;
-        desiredImagePos = imageBottomPos;
+        desiredImageScale.x = .3f;
     }
 
     void OnMouseDrag() {
@@ -59,7 +66,7 @@ public class MoveHandle : MonoBehaviour {
         Vector3 currPos = startPosition;
         currPos.z = localPos.z;
 
-        if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + UNITY_DOCUMENT_HANDLE_HEIGHT) {
+        if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + DOCUMENT_HEIGHT) {
             transform.localPosition = currPos;
         }
     }
