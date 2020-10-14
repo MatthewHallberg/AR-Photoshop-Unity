@@ -5,13 +5,15 @@ public class AdjustHandle : MonoBehaviour {
     [Header("Handle")]
     const string HANDLE_KEY = "HandleHeight";
     public AdjustmentInfo handleInfo;
+    public MoveHandle moveHandle;
 
     [Header("Occluder")]
     const string OCCLUDER_KEY = "OccluderWidth";
     public AdjustmentInfo occluderInfo;
-
     public Transform Occluder;
     public GameObject occluderVisualizer;
+    public Transform distortTop;
+    public Transform distortBottom;
 
     void Awake() {
         //save values on first load
@@ -27,6 +29,11 @@ public class AdjustHandle : MonoBehaviour {
         tempScale.y = val;
         Occluder.localScale = tempScale;
         occluderInfo.CurrValue = val;
+        //move top occluder based on scale
+        float amount = (Occluder.localScale.y) + (distortBottom.localScale.y/2);
+        Vector3 bottomPos = distortBottom.localPosition;
+        bottomPos.z = Occluder.localPosition.z - amount;
+        distortBottom.localPosition = bottomPos;
     }
 
     public void ChangeHandle(float val) {
@@ -34,6 +41,7 @@ public class AdjustHandle : MonoBehaviour {
         tempPos.z = val;
         transform.localPosition = tempPos;
         handleInfo.CurrValue = val;
+        moveHandle.OnHandlePositionChanged();
     }
 
     public AdjustmentInfo GetHandleInfo() {

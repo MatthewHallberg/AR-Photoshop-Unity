@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class MoveHandle : MonoBehaviour {
 
@@ -19,15 +20,14 @@ public class MoveHandle : MonoBehaviour {
     Vector3 startPosition;
     bool shouldMoveHandle = true;
 
-    void Start() {
-        startPosition = transform.localPosition;
+    void Awake() {
         mainCam = Camera.main;
-        SetImagePositions();
+        ResetImagePositions();
     }
 
     void Update() {
         if (shouldMoveHandle) {
-           transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
+            transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
             if (Vector3.Distance(transform.localPosition, startPosition) < .1) {
                 transform.localPosition = startPosition;
                 desiredImagePos = imageBottomPos;
@@ -39,7 +39,7 @@ public class MoveHandle : MonoBehaviour {
         HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredImageScale, Time.deltaTime * MOVE_SPEED);
     }
 
-   void OnMouseDown() {
+    void OnMouseDown() {
         shouldMoveHandle = false;
         desiredImagePos = imageTopPos;
         desiredImageScale.x = .2f;
@@ -55,7 +55,7 @@ public class MoveHandle : MonoBehaviour {
 
         //get world position of screen touch
         Transform imageTarget = transform.parent;
-        float distance = Vector3.Distance(imageTarget.position,mainCam.transform.position);
+        float distance = Vector3.Distance(imageTarget.position, mainCam.transform.position);
         Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance);
         Vector3 worldTouchPos = mainCam.ScreenToWorldPoint(mousePos);
 
@@ -71,8 +71,20 @@ public class MoveHandle : MonoBehaviour {
         }
     }
 
-    void SetImagePositions() {
+    void ResetImagePositions() {
+        startPosition = transform.localPosition;
         imageTopPos = ImageParent.localPosition;
+        ImageParent.position = TransparentImages.position;
+        imageBottomPos = ImageParent.localPosition;
+        desiredImagePos = imageBottomPos;
+    }
+
+    public void OnHandlePositionChanged() {
+        StartCoroutine(ChangeHandleRoutine());
+    }
+
+    IEnumerator ChangeHandleRoutine() {
+        yield return new WaitForEndOfFrame();
         ImageParent.position = TransparentImages.position;
         imageBottomPos = ImageParent.localPosition;
         desiredImagePos = imageBottomPos;
