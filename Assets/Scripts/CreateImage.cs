@@ -3,7 +3,7 @@
 public class CreateImage : MonoBehaviour {
 
     const float DOCUMENT_SIZE = 1024f;
-    const float Z_DISTANCE = .01f;
+    const float Z_DISTANCE = .0001f;
 
     public GameObject imageObject;
 
@@ -20,6 +20,8 @@ public class CreateImage : MonoBehaviour {
     public void OnNewMessageIncoming() {
         //clear error state
         TargetController.Instance.imageTransferError = false;
+        TargetController.Instance.imageTrackerCreated = false;
+        MoveHandle.Instance.EnableVisuals(true);
         //delete old images
         foreach (Transform child in transform) {
             Destroy(child.gameObject);

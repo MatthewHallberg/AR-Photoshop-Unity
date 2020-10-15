@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class MoveHandle : MonoBehaviour {
+public class MoveHandle : Singleton<MoveHandle> {
 
     const float MOVE_SPEED = 15;
     const float DOCUMENT_HEIGHT = 1f;
 
     public Transform ImageParent;
+    public Transform TransParent;
     public Transform TransparentImages;
     public Transform HandleImage;
     public DistortionController distortion;
@@ -20,7 +21,8 @@ public class MoveHandle : MonoBehaviour {
     Vector3 startPosition;
     bool shouldMoveHandle = true;
 
-    void Awake() {
+    protected override void Awake() {
+        base.Awake();
         mainCam = Camera.main;
         ResetImagePositions();
     }
@@ -32,6 +34,9 @@ public class MoveHandle : MonoBehaviour {
                 transform.localPosition = startPosition;
                 desiredImagePos = imageBottomPos;
                 distortion.ActivateDistortion(false);
+                if (TargetController.Instance.imageTrackerCreated) {
+                    EnableVisuals(false);
+                }
             }
         }
 
@@ -44,6 +49,8 @@ public class MoveHandle : MonoBehaviour {
         desiredImagePos = imageTopPos;
         desiredImageScale.x = .2f;
         distortion.ActivateDistortion(true);
+
+        EnableVisuals(true);
     }
 
     void OnMouseUp() {
@@ -77,6 +84,11 @@ public class MoveHandle : MonoBehaviour {
         ImageParent.position = TransparentImages.position;
         imageBottomPos = ImageParent.localPosition;
         desiredImagePos = imageBottomPos;
+    }
+
+    public void EnableVisuals(bool active) {
+        ImageParent.gameObject.SetActive(active);
+        TransParent.gameObject.SetActive(active);
     }
 
     public void OnHandlePositionChanged() {

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 using Vuforia;
 
 public class TargetController : Singleton<TargetController> {
@@ -6,9 +7,9 @@ public class TargetController : Singleton<TargetController> {
     public readonly float ImageTargetSizeMeters = 0.2f;
 
     public bool imageTransferError { get; set; }
+    public bool imageTrackerCreated { get; set; }
 
     public Camera targetCamera;
-    public Transform imageParent;
 
     void Start() {
         //turn off image target camera until we need it
@@ -30,14 +31,14 @@ public class TargetController : Singleton<TargetController> {
             return;
         }
 
-        //set physical size of parent to match physical image size
-        imageParent.localScale = Vector3.one * ImageTargetSizeMeters;
-
         //get image target texture from second camera
-        targetCamera.gameObject.SetActive(true);
+        MoveHandle.Instance.EnableVisuals(true);
         targetCamera.Render();
         Texture2D imageTargetTexture = RenderTexutreToTexture2D(targetCamera.activeTexture);
         targetCamera.gameObject.SetActive(false);
+
+        //TEST:
+        DebugWriteImageToFIle(imageTargetTexture);
 
         //create runtime tracker
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
@@ -49,15 +50,15 @@ public class TargetController : Singleton<TargetController> {
         objectTracker.ActivateDataSet(dataset);
 
         if (success) {
+            Debug.Log("Image target created successful...");
             OnTargetCreated();
         }
     }
 
     void OnTargetCreated() {
+        imageTrackerCreated = true;
         //vuforia will active renderers on detection
         SetRenderersActive(false);
-        //make image slighty bigger to cover entire photoshop image
-        imageParent.localScale += Vector3.one * .01f;
     }
 
     Texture2D RenderTexutreToTexture2D(RenderTexture rTex) {
@@ -72,5 +73,11 @@ public class TargetController : Singleton<TargetController> {
         foreach (Renderer rend in GetComponentsInChildren<Renderer>()) {
             rend.enabled = active;
         }
+    }
+
+    void DebugWriteImageToFIle(Texture2D trackerImage) {
+        byte[] imageBytes = trackerImage.EncodeToPNG();
+        File.WriteAllBytes(Application.streamingAssetsPath + "/test.png", imageBytes);
+        Debug.Log("Image Target wrote to file!");
     }
 }

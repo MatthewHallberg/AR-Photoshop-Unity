@@ -29,8 +29,8 @@ public class AdjustHandle : MonoBehaviour {
         tempScale.y = val;
         Occluder.localScale = tempScale;
         occluderInfo.CurrValue = val;
-        //move top occluder based on scale
-        float amount = (Occluder.localScale.y) + (distortBottom.localScale.y/2);
+        //move bottom distortion based on occluder scale
+        float amount = Occluder.localScale.y + (distortBottom.localScale.y/2);
         Vector3 bottomPos = distortBottom.localPosition;
         bottomPos.z = Occluder.localPosition.z - amount;
         distortBottom.localPosition = bottomPos;
