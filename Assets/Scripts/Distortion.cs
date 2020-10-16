@@ -3,7 +3,7 @@
 [RequireComponent(typeof(Renderer))]
 public class Distortion : MonoBehaviour {
 
-    const float RANGE = 2f;
+    const float RANGE = .05f;
     const float SPEED = 20;
 
     float currDistortion;

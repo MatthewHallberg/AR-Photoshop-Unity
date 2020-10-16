@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using NativeWebSocket;
+using System.Collections;
 
 public class WebSocketConnection : MonoBehaviour {
 
@@ -41,25 +42,29 @@ public class WebSocketConnection : MonoBehaviour {
         };
 
         websocket.OnMessage += (bytes) => {
-
-            string message = System.Text.Encoding.UTF8.GetString(bytes);
-
-            if (message == "start") {
-
-                messageStarted?.Invoke();
-
-            } else if (message == "end") {
-
-                messageComplete?.Invoke();
-
-            } else {
-
-                ImageMessage imageMessage = JsonUtility.FromJson<ImageMessage>(message);
-                messageRecieved?.Invoke(imageMessage);
-            }
+            StartCoroutine(LoadImageRoutine(bytes));
         };
 
         await websocket.Connect();
+    }
+
+    IEnumerator LoadImageRoutine(byte[] messageData) {
+        yield return new WaitForEndOfFrame();
+        string message = System.Text.Encoding.UTF8.GetString(messageData);
+
+        if (message == "start") {
+
+            messageStarted?.Invoke();
+
+        } else if (message == "end") {
+
+            messageComplete?.Invoke();
+
+        } else {
+
+            ImageMessage imageMessage = JsonUtility.FromJson<ImageMessage>(message);
+            messageRecieved?.Invoke(imageMessage);
+        }
     }
 
     public async void SendWebSocketMessage(string msg) {

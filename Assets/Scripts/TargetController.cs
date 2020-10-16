@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections;
+using System.IO;
 using UnityEngine;
 using Vuforia;
 
@@ -25,11 +26,17 @@ public class TargetController : Singleton<TargetController> {
     }
 
     void CreateImageTarget() {
+        StartCoroutine(CreateTrackerRoutine());
 
+    }
+
+    IEnumerator CreateTrackerRoutine() {
         //if an image doesnt come through dont create tracker
         if (imageTransferError) {
-            return;
+            yield break;
         }
+
+        yield return new WaitForEndOfFrame();
 
         //get image target texture from second camera
         MoveHandle.Instance.EnableVisuals(true);

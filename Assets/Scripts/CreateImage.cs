@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class CreateImage : MonoBehaviour {
 
@@ -7,14 +8,12 @@ public class CreateImage : MonoBehaviour {
 
     public GameObject imageObject;
 
-    public Renderer testRend;
-
-    void OnEnable() {
+    void Start() {
         WebSocketConnection.messageRecieved += OnImageReceived;
         WebSocketConnection.messageStarted += OnNewMessageIncoming;
     }
 
-    void OnDisable() {
+    void OnApplicationQuit() {
         WebSocketConnection.messageRecieved -= OnImageReceived;
         WebSocketConnection.messageStarted -= OnNewMessageIncoming;
     }
@@ -36,6 +35,13 @@ public class CreateImage : MonoBehaviour {
             return;
         }
 
+        StartCoroutine(LoadImageRoutine(currImage));
+    }
+
+    IEnumerator LoadImageRoutine(ImageMessage currImage) {
+
+        yield return new WaitForEndOfFrame();
+
         try {
             //create image plane
             GameObject image = Instantiate(imageObject, transform);
@@ -54,9 +60,6 @@ public class CreateImage : MonoBehaviour {
             //apply texture to material instance
             Renderer rend = image.GetComponent<Renderer>();
             rend.material.mainTexture = tex;
-
-            //test
-            testRend.material.mainTexture = tex;
 
             //set layer to image target for getting tracker image
             image.layer = 8;
