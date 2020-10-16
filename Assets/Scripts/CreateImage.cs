@@ -9,6 +9,16 @@ public class CreateImage : MonoBehaviour {
 
     public Renderer testRend;
 
+    void OnEnable() {
+        WebSocketConnection.messageRecieved += OnImageReceived;
+        WebSocketConnection.messageStarted += OnNewMessageIncoming;
+    }
+
+    void OnDisable() {
+        WebSocketConnection.messageRecieved -= OnImageReceived;
+        WebSocketConnection.messageStarted -= OnNewMessageIncoming;
+    }
+
     public void OnNewMessageIncoming() {
         //clear error state
         TargetController.Instance.imageTransferError = false;
@@ -38,18 +48,8 @@ public class CreateImage : MonoBehaviour {
             //create texture from pixels
             Texture2D tex = new Texture2D(currImage.width, currImage.height, TextureFormat.ARGB32, false);
 
-            //var colorArray = new Color32[currImage.pixels.Length / 4];
-            //for (var i = 0; i < currImage.pixels.Length; i += 4) {
-            //    var color = new Color32(currImage.pixels[i + 1], currImage.pixels[i + 2], currImage.pixels[i + 3], currImage.pixels[i + 0]);
-            //    colorArray[i / 4] = color;
-            //}
-            //tex.SetPixels32(colorArray);
+            tex.LoadRawTextureData(currImage.pixels.data);
 
-
-            tex.LoadRawTextureData(currImage.pixels);
-
-            //tex.SetPixels32()
-            //tex.LoadImage(currImage.pixels);
             tex.Apply();
             //apply texture to material instance
             Renderer rend = image.GetComponent<Renderer>();
@@ -61,7 +61,7 @@ public class CreateImage : MonoBehaviour {
             //set layer to image target for getting tracker image
             image.layer = 8;
 
-            Debug.Log(currImage.pixels.Length);
+            Debug.Log(currImage.pixels.data.Length);
 
         } catch (UnityException ex) {
             Debug.Log("Image send error: " + ex);

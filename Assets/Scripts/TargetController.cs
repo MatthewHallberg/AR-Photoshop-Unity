@@ -11,6 +11,14 @@ public class TargetController : Singleton<TargetController> {
 
     public Camera targetCamera;
 
+    void OnEnable() {
+        WebSocketConnection.messageComplete += CreateImageTarget;
+    }
+
+    void OnDisable() {
+        WebSocketConnection.messageComplete -= CreateImageTarget;
+    }
+
     void Start() {
         //turn off image target camera until we need it
         targetCamera.gameObject.SetActive(false);

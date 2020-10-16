@@ -25,7 +25,6 @@
 
 	function ExportLayers(){
 		console.log("exporting layers...");
-
         generator.getDocumentInfo()
         .then(function (document) {
         	currDocument = document;
@@ -41,30 +40,31 @@
 		generator.getPixmap(currDocument.id, item.id, options)
 		.then(function(pixmap) {
 
-        	var startString = "@start@" + pixmap.width.toString() + "@" + pixmap.height.toString() + "@";
-        	var endString = "@done@";
-
-        	//if this is the first image add new message to beginning
+        	//if this is the first image send start
         	if (layerIndex === 0){
-				startString = "@new@" + startString;
-        	} 
-
-        	//if this is the last image and done message to end
-        	if (layerIndex === currDocument.layers.length - 1){
-				endString = endString +  "end@";
+				webSocketServer.send("start");
         	}
 
-        	var startPixels = new Buffer(startString);
-        	var pixels = pixmap.pixels;
-        	var endPixels = new Buffer(endString);
-
-        	//SendMessageTCP(Buffer.concat([startPixels, pixels, endPixels]));
         	console.log("Sent: " + pixmap.pixels.length);
+
+        	var imageLayer = {
+  				width: pixmap.width,
+				height: pixmap.height,
+				pixels: pixmap.pixels						
+			};
+
+			webSocketServer.send(JSON.stringify(imageLayer));
 
         	var nextIndex = layerIndex + 1;
         	if (nextIndex < currDocument.layers.length){
 				SendLayerBuffer(nextIndex);
         	}
+
+        	//if last image send end message
+        	if (layerIndex === currDocument.layers.length - 1){
+				webSocketServer.send("end");
+        	}
+
 		});
 	}
 
@@ -90,7 +90,7 @@
 		console.log(msg);
 		if (msg == "connected"){
 			webSocketConnectionMade = true;
-			//ExportLayers();
+			ExportLayers();
 		} else if (msg == "disconnected"){
 			webSocketConnectionMade = false;
 			CloseSocketConnection();
@@ -125,8 +125,7 @@
 
 	function OnConnectButtonPressed(){
 		if (webSocketConnectionMade){
-			console.log("SEND PICTURE HERE!");
-			//ExportLayers();
+			ExportLayers();
 		} else {
 			GetPhotoshopIPAddress();
 			StartWebSocket();

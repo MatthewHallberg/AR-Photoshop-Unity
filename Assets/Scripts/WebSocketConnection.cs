@@ -3,6 +3,15 @@ using NativeWebSocket;
 
 public class WebSocketConnection : MonoBehaviour {
 
+    public delegate void OnMessageRecieved(ImageMessage currImage);
+    public static OnMessageRecieved messageRecieved;
+
+    public delegate void OnMessageStarted();
+    public static OnMessageStarted messageStarted;
+
+    public delegate void OnMessageCompleted();
+    public static OnMessageCompleted messageComplete;
+
     WebSocket websocket;
 
     void Update() {
@@ -32,17 +41,29 @@ public class WebSocketConnection : MonoBehaviour {
         };
 
         websocket.OnMessage += (bytes) => {
+
             string message = System.Text.Encoding.UTF8.GetString(bytes);
-            Debug.Log(message);
+
+            if (message == "start") {
+
+                messageStarted?.Invoke();
+
+            } else if (message == "end") {
+
+                messageComplete?.Invoke();
+
+            } else {
+
+                ImageMessage imageMessage = JsonUtility.FromJson<ImageMessage>(message);
+                messageRecieved?.Invoke(imageMessage);
+            }
         };
 
-        // waiting for messages
         await websocket.Connect();
     }
 
     public async void SendWebSocketMessage(string msg) {
         if (websocket.State == WebSocketState.Open) {
-            // Sending plain text
             await websocket.SendText(msg);
         }
     }

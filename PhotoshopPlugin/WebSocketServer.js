@@ -8,12 +8,13 @@ const app = express();
 const server = createServer(app);
 const wss = new WebSocket.Server({ server });
 
+var ConnectedSocket;
+
 wss.on('connection', function(ws) {
-  
+
   process.send('connected');
 
-  // send "hello world" interval
-  const textInterval = setInterval(() => ws.send("hello world!"), 1000);
+  ConnectedSocket = ws;
 
   ws.on('message', function(data) {
     if (typeof(data) === "string") {
@@ -25,8 +26,11 @@ wss.on('connection', function(ws) {
 
   ws.on('close', function() {
     process.send('disconnected');
-    clearInterval(textInterval);
   });
+});
+
+process.on('message',function(msg,info){
+    ConnectedSocket.send(msg);
 });
 
 server.listen(2223, function() {
