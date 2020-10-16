@@ -12,11 +12,8 @@
 	"use strict";
 
 	var generator;
-	var listenUDP;
-	var tcpConnection;
-
-	var tcpConnectionMade = false;
-
+	var webSocketServer;
+	var webSocketConnectionMade = false;
 	var currDocument;
 
 	function init(gen) {
@@ -61,7 +58,7 @@
         	var pixels = pixmap.pixels;
         	var endPixels = new Buffer(endString);
 
-        	SendMessageTCP(Buffer.concat([startPixels, pixels, endPixels]));
+        	//SendMessageTCP(Buffer.concat([startPixels, pixels, endPixels]));
         	console.log("Sent: " + pixmap.pixels.length);
 
         	var nextIndex = layerIndex + 1;
@@ -70,13 +67,6 @@
         	}
 		});
 	}
-
-	function SendMessageTCP(pixels){
-		//socket for sending image via TCP
-		if (tcpConnection != null){
-			tcpConnection.send(pixels);
-		}
-	}	
 
 	function SendMessageUDP(message){
 		var sendUDP = StartChildProcess("SendUDP.js");
@@ -96,90 +86,55 @@
 		return cp.fork(dirPath);
 	}
 
-	function OnTCPMessage(msg){
+	function OnSocketMessage(msg){
 		console.log(msg);
 		if (msg == "connected"){
-			tcpConnectionMade = true;
-			ExportLayers();
-			StartListenForUnityMessages();
+			webSocketConnectionMade = true;
+			//ExportLayers();
 		} else if (msg == "disconnected"){
-			tcpConnectionMade = false;
-			tcpConnection = null;
+			webSocketConnectionMade = false;
+			CloseSocketConnection();
+		} else {
+			MessageFromUnity(msg);
 		}
 	}
 
-	function StartTCPConnection(){
-		if (tcpConnection == null){
-			tcpConnection = StartChildProcess("TcpConnection.js");
-			tcpConnection.on('message', function(m) {
-				OnTCPMessage(m);
+	function StartWebSocket(){
+		if (webSocketServer == null){
+			webSocketServer = StartChildProcess("WebSocketServer.js");
+			webSocketServer.on('message', function(m) {
+				OnSocketMessage(m);
 			});
 		}
 	}
 
-	function CloseTCPConnection(){
-		if (tcpConnection == null){
-			tcpConnection.kill();
-			tcpConnection = null;
+	function CloseSocketConnection(){
+		if (webSocketServer == null){
+			webSocketServer.kill();
+			webSocketServer = null;
 		}
-	}
-
-	function StartListenForUnityMessages(){
-		StopListenUDP();
-		listenUDP = StartChildProcess("listenUDP.js");
-		//listen for messages from child process
-		listenUDP.on('message', function(m) {
-			MessageFromUnity(m);
-		});
-	}
-
-	function StartListemForUnityIP(){
-		StopListenUDP();
-		listenUDP = StartChildProcess("listenUDP.js");
-		//listen for messages from child process
-		listenUDP.on('message', function(m) {
-			OnUnityIPAddressReceieved(m);
-		});
-	}
-
-	function StopListenUDP(){
-		if (listenUDP != null){
-			listenUDP.kill();
-			listenUDP = null;
-			console.log("stopped udp listener");
-		}
-	}
-
-	function OnUnityIPAddressReceieved(IPAddress){
-		console.log("Got Unity IP address: " + IPAddress);
-		StartTCPConnection();
-		tcpConnection.send(IPAddress);
-	}
-
-	function OnPhotoshopIPAddressRecieved(IPAddress){
-		console.log("Got local IP address: " + IPAddress);
-		StartListemForUnityIP();
-		SendMessageUDP(IPAddress);
 	}
 
 	function GetPhotoshopIPAddress(){
 		var GetIPAddressPhotoshop = StartChildProcess("IPAddress.js");
 		GetIPAddressPhotoshop.on('message', function(ip) {
-			OnPhotoshopIPAddressRecieved(ip);
+			console.log("Got local IP address: " + ip);
+			SendMessageUDP(ip);
 		});
 	}
 
 	function OnConnectButtonPressed(){
-		if (tcpConnectionMade){
-			ExportLayers();
+		if (webSocketConnectionMade){
+			console.log("SEND PICTURE HERE!");
+			//ExportLayers();
 		} else {
 			GetPhotoshopIPAddress();
+			StartWebSocket();
 		}
 	}
 
 	function OnDocumentClosed(e){
-		StopListenUDP();
-		CloseTCPConnection();
+		CloseSocketConnection();
 	}
 
 	function OnMenuClicked(e){

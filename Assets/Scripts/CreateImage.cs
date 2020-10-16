@@ -7,15 +7,7 @@ public class CreateImage : MonoBehaviour {
 
     public GameObject imageObject;
 
-    void OnEnable() {
-        ReceiveTCP.messageRecieved += OnImageReceived;
-        ReceiveTCP.messageStarted += OnNewMessageIncoming;
-    }
-
-    void OnDisable() {
-        ReceiveTCP.messageRecieved -= OnImageReceived;
-        ReceiveTCP.messageStarted -= OnNewMessageIncoming;
-    }
+    public Renderer testRend;
 
     public void OnNewMessageIncoming() {
         //clear error state
@@ -45,11 +37,26 @@ public class CreateImage : MonoBehaviour {
 
             //create texture from pixels
             Texture2D tex = new Texture2D(currImage.width, currImage.height, TextureFormat.ARGB32, false);
+
+            //var colorArray = new Color32[currImage.pixels.Length / 4];
+            //for (var i = 0; i < currImage.pixels.Length; i += 4) {
+            //    var color = new Color32(currImage.pixels[i + 1], currImage.pixels[i + 2], currImage.pixels[i + 3], currImage.pixels[i + 0]);
+            //    colorArray[i / 4] = color;
+            //}
+            //tex.SetPixels32(colorArray);
+
+
             tex.LoadRawTextureData(currImage.pixels);
+
+            //tex.SetPixels32()
+            //tex.LoadImage(currImage.pixels);
             tex.Apply();
             //apply texture to material instance
             Renderer rend = image.GetComponent<Renderer>();
             rend.material.mainTexture = tex;
+
+            //test
+            testRend.material.mainTexture = tex;
 
             //set layer to image target for getting tracker image
             image.layer = 8;
@@ -60,7 +67,7 @@ public class CreateImage : MonoBehaviour {
             Debug.Log("Image send error: " + ex);
             Debug.Log("If layer is text try converting it to a shape???");
             TargetController.Instance.imageTransferError = true;
-            ConnectionManager.Instance.SendUDPMessage("Image send error: please modify the document and try again.");
+            ConnectionManager.Instance.SendMessageToPhotoshop("Image send error: please modify the document and try again.");
         }
     }
 }

@@ -1,30 +1,20 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using UnityEngine;
+﻿using UnityEngine;
 
-[RequireComponent(typeof(SendUDP))]
 [RequireComponent(typeof(ListenUDP))]
-[RequireComponent(typeof(ReceiveTCP))]
 public class ConnectionManager : Singleton<ConnectionManager> {
 
     public static readonly int LISTEN_UDP_PORT = 2221;
-    public static readonly int SEND_UDP_PORT = 2222;
-    public static readonly int TCP_PORT = 2223;
+    public static readonly int WEB_SOCKET_PORT = 2223;
 
-    string Photoshop_IPAddress = string.Empty;
-
-    SendUDP sendUDP;
     ListenUDP listenUDP;
-    ReceiveTCP tcp;
+    WebSocketConnection webSocket;
 
     void Start() {
-        sendUDP = GetComponent<SendUDP>();
         listenUDP = GetComponent<ListenUDP>();
-        tcp = GetComponent<ReceiveTCP>();
+        webSocket = GetComponent<WebSocketConnection>();
 
         //start listening for IP address from photoshop
         listenUDP.ListenForUDP();
-        sendUDP.StartSendUDP();
     }
 
     void OnEnable() {
@@ -35,36 +25,12 @@ public class ConnectionManager : Singleton<ConnectionManager> {
         ListenUDP.messageRecieved -= RegisterPhotoshopIPAddress;
     }
 
-    public string GetPhotoshopIPAddress() {
-        return Photoshop_IPAddress;
+    public void SendMessageToPhotoshop(string message) {
+        webSocket.SendWebSocketMessage(message);
     }
 
-    public void RegisterPhotoshopIPAddress(string IPAddress) {
-        //save photoshop IP address
-        Photoshop_IPAddress = IPAddress;
-        //start tcp connection
-        tcp.StartTCPConnection();
-        //send our IP address
-        SendLocalIPAddress();
-        //specify UDP endpoint
-        sendUDP.SetIPAddress(IPAddress);
-    }
-
-    public void SendUDPMessage(string message) {
-        sendUDP.SendPacket(message);
-    }
-
-    void SendLocalIPAddress() {
-        sendUDP.SendPacket(GetLocalIPAddress());
-    }
-
-    string GetLocalIPAddress() {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList) {
-            if (ip.AddressFamily == AddressFamily.InterNetwork) {
-                return ip.ToString();
-            }
-        }
-        return string.Empty;
+    public void RegisterPhotoshopIPAddress(string photoshopIP) {
+        //start websocket connection
+        webSocket.StartConnection(photoshopIP, WEB_SOCKET_PORT.ToString());
     }
 }

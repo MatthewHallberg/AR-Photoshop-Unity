@@ -16,14 +16,6 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
     }
 
-    void OnEnable() {
-        ReceiveTCP.messageComplete += CreateImageTarget;
-    }
-
-    void OnDisable() {
-        ReceiveTCP.messageComplete -= CreateImageTarget;
-    }
-
     void CreateImageTarget() {
 
         //if an image doesnt come through dont create tracker
@@ -38,7 +30,7 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
 
         //TEST:
-        DebugWriteImageToFIle(imageTargetTexture);
+        //DebugWriteImageToFIle(imageTargetTexture);
 
         //create runtime tracker
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
