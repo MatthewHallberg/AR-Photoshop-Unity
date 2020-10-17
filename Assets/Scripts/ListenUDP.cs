@@ -13,7 +13,12 @@ public class ListenUDP : MonoBehaviour {
 
     public void ListenForUDP() {
         // Create UDP client
-        receiver = new UdpClient(ConnectionManager.LISTEN_UDP_PORT);
+        receiver = new UdpClient(ConnectionManager.LISTEN_UDP_PORT) {
+            EnableBroadcast = true
+        };
+        // allow reusing port
+        receiver.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        //start thread to recieve data
         receiver.BeginReceive(DataReceived, receiver);
         Debug.Log("listenging for udp on port: " + ConnectionManager.LISTEN_UDP_PORT);
     }
@@ -41,10 +46,9 @@ public class ListenUDP : MonoBehaviour {
     void DataReceived(IAsyncResult ar) {
 
         UdpClient c = (UdpClient)ar.AsyncState;
-        IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        Byte[] receivedBytes = c.EndReceive(ar, ref receivedIpEndPoint);
+        IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, ConnectionManager.LISTEN_UDP_PORT);
+        byte[] receivedBytes = c.EndReceive(ar, ref receivedIpEndPoint);
 
-        //string packet = System.Text.Encoding.UTF8.GetString (receivedBytes, 0, 20);
         currMessage = System.Text.Encoding.UTF8.GetString(receivedBytes);
 
         // Restart listening for udp data packages

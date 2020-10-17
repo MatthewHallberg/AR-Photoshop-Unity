@@ -30,6 +30,8 @@ public class ConnectionManager : Singleton<ConnectionManager> {
     }
 
     public void RegisterPhotoshopIPAddress(string photoshopIP) {
+        //once connection is made we dont care about broadcast issues anymore
+        MultiCastLockPixel.stopAcquiringLock = true;
         //start websocket connection
         webSocket.StartConnection(photoshopIP, WEB_SOCKET_PORT.ToString());
     }

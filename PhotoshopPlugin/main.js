@@ -40,9 +40,9 @@
 		generator.getPixmap(currDocument.id, item.id, options)
 		.then(function(pixmap) {
 
-        	//if this is the first image send start
+        	//if this is the first image send number of layers
         	if (layerIndex === 0){
-				webSocketServer.send("start");
+				webSocketServer.send(currDocument.layers.length.toString());
         	}
 
         	console.log("Sent: " + pixmap.pixels.length);
@@ -57,14 +57,8 @@
 
         	var nextIndex = layerIndex + 1;
         	if (nextIndex < currDocument.layers.length){
-				SendLayerBuffer(nextIndex);
+        		SendLayerBuffer(nextIndex);
         	}
-
-        	//if last image send end message
-        	if (layerIndex === currDocument.layers.length - 1){
-				webSocketServer.send("end");
-        	}
-
 		});
 	}
 

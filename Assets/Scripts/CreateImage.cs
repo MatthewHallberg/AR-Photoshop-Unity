@@ -40,37 +40,35 @@ public class CreateImage : MonoBehaviour {
 
     IEnumerator LoadImageRoutine(ImageMessage currImage) {
 
-        yield return new WaitForEndOfFrame();
+        //create image plane
+        GameObject image = Instantiate(imageObject, transform);
+        //position object behind the last one
+        float zPos = Z_DISTANCE * transform.childCount;
+        image.transform.localPosition = new Vector3(0, 0, zPos);
+        //scale object based on size of photoshop layer
+        image.transform.localScale = new Vector3((float)currImage.width / DOCUMENT_SIZE, (float)currImage.height / DOCUMENT_SIZE, 1);
+
+        //create texture from pixels
+        Texture2D tex = new Texture2D(currImage.width, currImage.height, TextureFormat.ARGB32, false);
 
         try {
-            //create image plane
-            GameObject image = Instantiate(imageObject, transform);
-            //position object behind the last one
-            float zPos = Z_DISTANCE * transform.childCount;
-            image.transform.localPosition = new Vector3(0, 0, zPos);
-            //scale object based on size of photoshop layer
-            image.transform.localScale = new Vector3((float)currImage.width / DOCUMENT_SIZE, (float)currImage.height / DOCUMENT_SIZE, 1);
-
-            //create texture from pixels
-            Texture2D tex = new Texture2D(currImage.width, currImage.height, TextureFormat.ARGB32, false);
-
             tex.LoadRawTextureData(currImage.pixels.data);
-
-            tex.Apply();
-            //apply texture to material instance
-            Renderer rend = image.GetComponent<Renderer>();
-            rend.material.mainTexture = tex;
-
-            //set layer to image target for getting tracker image
-            image.layer = 8;
-
-            Debug.Log(currImage.pixels.data.Length);
-
         } catch (UnityException ex) {
             Debug.Log("Image send error: " + ex);
-            Debug.Log("If layer is text try converting it to a shape???");
             TargetController.Instance.imageTransferError = true;
             ConnectionManager.Instance.SendMessageToPhotoshop("Image send error: please modify the document and try again.");
         }
+
+        tex.Apply();
+        //apply texture to material instance
+        Renderer rend = image.GetComponent<Renderer>();
+        rend.material.mainTexture = tex;
+
+        //set layer to image target for getting tracker image
+        image.layer = 8;
+
+        Debug.Log(currImage.pixels.data.Length);
+
+        yield return null;
     }
 }

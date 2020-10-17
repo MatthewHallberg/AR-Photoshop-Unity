@@ -14,10 +14,12 @@ public class TargetController : Singleton<TargetController> {
 
     void OnEnable() {
         WebSocketConnection.messageComplete += CreateImageTarget;
+        WebSocketConnection.messageStarted += OnNewMessageIncoming;
     }
 
     void OnDisable() {
         WebSocketConnection.messageComplete -= CreateImageTarget;
+        WebSocketConnection.messageStarted -= OnNewMessageIncoming;
     }
 
     void Start() {
@@ -25,27 +27,37 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
     }
 
+    void OnNewMessageIncoming() {
+        var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
+        objectTracker.Stop();
+        objectTracker.DestroyAllDataSets(false);
+    }
+
     void CreateImageTarget() {
         StartCoroutine(CreateTrackerRoutine());
-
     }
 
     IEnumerator CreateTrackerRoutine() {
+
+        yield return new WaitForEndOfFrame();
+
         //if an image doesnt come through dont create tracker
         if (imageTransferError) {
             yield break;
         }
 
-        yield return new WaitForEndOfFrame();
-
         //get image target texture from second camera
         MoveHandle.Instance.EnableVisuals(true);
+        yield return new WaitForEndOfFrame();
         targetCamera.Render();
         Texture2D imageTargetTexture = RenderTexutreToTexture2D(targetCamera.activeTexture);
         targetCamera.gameObject.SetActive(false);
+        yield return new WaitForEndOfFrame();
 
         //TEST:
-        //DebugWriteImageToFIle(imageTargetTexture);
+#if UNITY_EDITOR
+        DebugWriteImageToFIle(imageTargetTexture);
+#endif
 
         //create runtime tracker
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
@@ -55,10 +67,14 @@ public class TargetController : Singleton<TargetController> {
         var dataset = objectTracker.CreateDataSet();
         dataset.CreateTrackable(runtimeImageSource, gameObject);
         objectTracker.ActivateDataSet(dataset);
+        objectTracker.Start();
 
         if (success) {
             Debug.Log("Image target created successful...");
             OnTargetCreated();
+            Message.Instance.ShowMessage("Tracker created!");
+            yield return new WaitForSeconds(1f);
+            Message.Instance.CloseMessage();
         }
     }
 

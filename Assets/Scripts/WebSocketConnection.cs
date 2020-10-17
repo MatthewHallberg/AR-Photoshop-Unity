@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using NativeWebSocket;
 using System.Collections;
+using System.Threading;
+using System.Collections.Generic;
 
 public class WebSocketConnection : MonoBehaviour {
 
@@ -14,11 +16,23 @@ public class WebSocketConnection : MonoBehaviour {
     public static OnMessageCompleted messageComplete;
 
     WebSocket websocket;
+    List<ImageMessage> currImages = new List<ImageMessage>();
 
     void Update() {
 
         if (websocket == null) {
             return;
+        }
+
+        if (currImages.Count > 0) {
+            ImageMessage imageMessage = currImages[0];
+            ImageMessage imageCopy = imageMessage;
+            messageRecieved?.Invoke(imageCopy);
+            currImages.Remove(imageMessage);
+            if (numLayers == 0) {
+                Message.Instance.ShowMessage("Loading images...");
+                messageComplete?.Invoke();
+            }
         }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -42,29 +56,33 @@ public class WebSocketConnection : MonoBehaviour {
         };
 
         websocket.OnMessage += (bytes) => {
-            StartCoroutine(LoadImageRoutine(bytes));
+            ParseMessage(bytes);
         };
 
         await websocket.Connect();
     }
 
-    IEnumerator LoadImageRoutine(byte[] messageData) {
-        yield return new WaitForEndOfFrame();
-        string message = System.Text.Encoding.UTF8.GetString(messageData);
+    int numLayers;
+    void ParseMessage(byte[] messageData) {
 
-        if (message == "start") {
-
-            messageStarted?.Invoke();
-
-        } else if (message == "end") {
-
-            messageComplete?.Invoke();
-
+        if (messageData.Length > 10) {
+            numLayers--;
+            Message.Instance.ShowMessage("Recieving layers...");
+            //desierializing large JSON causes app to hang in coroutine so we can do another thread instead.
+            Thread loadImageMessage = new Thread(LoadImageMessageThread);
+            loadImageMessage.Start(messageData);
         } else {
-
-            ImageMessage imageMessage = JsonUtility.FromJson<ImageMessage>(message);
-            messageRecieved?.Invoke(imageMessage);
+            string message = System.Text.Encoding.UTF8.GetString(messageData);
+            numLayers = int.Parse(message);
+            Message.Instance.ShowMessage("Extracting " + message + " layers...");
+            messageStarted?.Invoke();  
         }
+    }
+
+    void LoadImageMessageThread(object data) {
+        string message = System.Text.Encoding.UTF8.GetString((byte[])data);
+        ImageMessage imageMessage = JsonUtility.FromJson<ImageMessage>(message);
+        currImages.Add(imageMessage);
     }
 
     public async void SendWebSocketMessage(string msg) {
