@@ -36,7 +36,7 @@
 
 		var item = currDocument.layers[layerIndex];
 
-        var options = { clipToDocumentBounds: true};
+        var options = {clipToDocumentBounds: true};
 		generator.getPixmap(currDocument.id, item.id, options)
 		.then(function(pixmap) {
 
@@ -50,6 +50,10 @@
         	var imageLayer = {
   				width: pixmap.width,
 				height: pixmap.height,
+				top: pixmap.bounds.top,
+				bottom: pixmap.bounds.bottom,
+				left: pixmap.bounds.left,
+				right: pixmap.bounds.right,
 				pixels: pixmap.pixels						
 			};
 

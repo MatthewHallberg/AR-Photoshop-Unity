@@ -4,9 +4,10 @@ using UnityEngine;
 public class CreateImage : MonoBehaviour {
 
     const float DOCUMENT_SIZE = 1024f;
-    const float Z_DISTANCE = .0001f;
 
     public GameObject imageObject;
+
+    int totalImages;
 
     void Start() {
         WebSocketConnection.messageRecieved += OnImageReceived;
@@ -18,7 +19,8 @@ public class CreateImage : MonoBehaviour {
         WebSocketConnection.messageStarted -= OnNewMessageIncoming;
     }
 
-    public void OnNewMessageIncoming() {
+    public void OnNewMessageIncoming(int numImages) {
+        totalImages = numImages;
         //clear error state
         TargetController.Instance.imageTransferError = false;
         TargetController.Instance.imageTrackerCreated = false;
@@ -42,9 +44,21 @@ public class CreateImage : MonoBehaviour {
 
         //create image plane
         GameObject image = Instantiate(imageObject, transform);
-        //position object behind the last one
-        float zPos = Z_DISTANCE * transform.childCount;
-        image.transform.localPosition = new Vector3(0, 0, zPos);
+
+        //set layering
+        image.transform.SetAsLastSibling();
+        image.GetComponent<Renderer>().material.renderQueue = 3000 + totalImages - transform.childCount;
+
+        //convert photoshop coords to unity
+        if (currImage.top == 0 && currImage.bottom == DOCUMENT_SIZE && currImage.left == 0 && currImage.right == DOCUMENT_SIZE) {
+            //full screen image dont move on x or y
+            image.transform.localPosition = Vector3.zero;
+        } else {
+            float xPos = PhotoshopLeftToUnityXPos(currImage.left, currImage.width);
+            float yPos = PhotoshopTopToUnityYPos(currImage.top, currImage.height);
+            image.transform.localPosition = new Vector3(xPos, yPos, 0);
+        }
+
         //scale object based on size of photoshop layer
         image.transform.localScale = new Vector3((float)currImage.width / DOCUMENT_SIZE, (float)currImage.height / DOCUMENT_SIZE, 1);
 
@@ -70,5 +84,20 @@ public class CreateImage : MonoBehaviour {
         Debug.Log(currImage.pixels.data.Length);
 
         yield return null;
+    }
+
+    float PhotoshopLeftToUnityXPos(float left, float width) {
+
+        //images coming in mirrored on x? (I inverted the scale on the material)
+        float leftAmount = left / 1024f;
+        float halfImageWidth = width / DOCUMENT_SIZE / 2f;
+        return leftAmount - .5f + halfImageWidth;
+    }
+
+    float PhotoshopTopToUnityYPos(float top, float height) {
+
+        float topAmount = top / 1024f;
+        float halfImageHeight = height / DOCUMENT_SIZE / 2f;
+        return -topAmount + .5f - halfImageHeight;
     }
 }

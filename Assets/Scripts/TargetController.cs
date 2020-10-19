@@ -27,7 +27,7 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
     }
 
-    void OnNewMessageIncoming() {
+    void OnNewMessageIncoming(int unused) {
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
         objectTracker.Stop();
         objectTracker.DestroyAllDataSets(false);
@@ -48,6 +48,7 @@ public class TargetController : Singleton<TargetController> {
 
         //get image target texture from second camera
         MoveHandle.Instance.EnableVisuals(true);
+        targetCamera.transform.position = MoveHandle.Instance.ImageParent.position;
         yield return new WaitForEndOfFrame();
         targetCamera.Render();
         Texture2D imageTargetTexture = RenderTexutreToTexture2D(targetCamera.activeTexture);

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using NativeWebSocket;
-using System.Collections;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -9,7 +8,7 @@ public class WebSocketConnection : MonoBehaviour {
     public delegate void OnMessageRecieved(ImageMessage currImage);
     public static OnMessageRecieved messageRecieved;
 
-    public delegate void OnMessageStarted();
+    public delegate void OnMessageStarted(int numImages);
     public static OnMessageStarted messageStarted;
 
     public delegate void OnMessageCompleted();
@@ -30,7 +29,6 @@ public class WebSocketConnection : MonoBehaviour {
             messageRecieved?.Invoke(imageCopy);
             currImages.Remove(imageMessage);
             if (numLayers == 0) {
-                Message.Instance.ShowMessage("Loading images...");
                 messageComplete?.Invoke();
             }
         }
@@ -67,7 +65,7 @@ public class WebSocketConnection : MonoBehaviour {
 
         if (messageData.Length > 10) {
             numLayers--;
-            Message.Instance.ShowMessage("Recieving layers...");
+            Message.Instance.ShowMessage("Loading layers...");
             //desierializing large JSON causes app to hang in coroutine so we can do another thread instead.
             Thread loadImageMessage = new Thread(LoadImageMessageThread);
             loadImageMessage.Start(messageData);
@@ -75,7 +73,7 @@ public class WebSocketConnection : MonoBehaviour {
             string message = System.Text.Encoding.UTF8.GetString(messageData);
             numLayers = int.Parse(message);
             Message.Instance.ShowMessage("Extracting " + message + " layers...");
-            messageStarted?.Invoke();  
+            messageStarted?.Invoke(numLayers);  
         }
     }
 
