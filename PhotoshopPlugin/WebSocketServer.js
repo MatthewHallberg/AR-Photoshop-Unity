@@ -1,12 +1,6 @@
-const crypto = require('crypto');
-const express = require('express');
-const { createServer } = require('http');
 const WebSocket = require('ws');
 
-const app = express();
-
-const server = createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ port: 2223 });
 
 var ConnectedSocket;
 
@@ -31,8 +25,4 @@ wss.on('connection', function(ws) {
 
 process.on('message',function(msg,info){
     ConnectedSocket.send(msg);
-});
-
-server.listen(2223, function() {
-  console.log('Listening on http://localhost:2223');
 });
