@@ -11,7 +11,6 @@
   "dependencies": {
     "com.ptc.vuforia.engine": "9.4.6",
     "com.unity.collab-proxy": "1.2.16",
-    "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.2.2",
     "com.unity.test-framework": "1.1.18",
     "com.unity.textmeshpro": "2.0.1",

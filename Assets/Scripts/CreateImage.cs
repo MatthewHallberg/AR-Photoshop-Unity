@@ -1,7 +1,8 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class CreateImage : MonoBehaviour {
+public class CreateImage : Singleton<CreateImage> {
 
     const float DOCUMENT_SIZE = 1024f;
 
@@ -24,7 +25,7 @@ public class CreateImage : MonoBehaviour {
         //clear error state
         TargetController.Instance.imageTransferError = false;
         TargetController.Instance.imageTrackerCreated = false;
-        MoveHandle.Instance.EnableVisuals(true);
+        MoveHandle.Instance.EnableImageVisuals(true);
         //delete old images
         foreach (Transform child in transform) {
             Destroy(child.gameObject);

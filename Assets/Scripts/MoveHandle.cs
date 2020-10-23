@@ -7,6 +7,7 @@ public class MoveHandle : Singleton<MoveHandle> {
     const float DOCUMENT_HEIGHT = 1f;
 
     public Transform ImageParent;
+    public GameObject ActivateButton;
     public Transform TransParent;
     public Transform TransparentImages;
     public Transform HandleImage;
@@ -25,6 +26,7 @@ public class MoveHandle : Singleton<MoveHandle> {
         base.Awake();
         mainCam = Camera.main;
         ResetImagePositions();
+        EnableHandleVisuals(true);
     }
 
     void Update() {
@@ -35,7 +37,7 @@ public class MoveHandle : Singleton<MoveHandle> {
                 desiredImagePos = imageBottomPos;
                 distortion.ActivateDistortion(false);
                 if (TargetController.Instance.imageTrackerCreated) {
-                    EnableVisuals(false);
+                    EnableImageVisuals(false);
                 }
             }
         }
@@ -50,7 +52,7 @@ public class MoveHandle : Singleton<MoveHandle> {
         desiredImageScale.x = .2f;
         distortion.ActivateDistortion(true);
 
-        EnableVisuals(true);
+        EnableImageVisuals(true);
     }
 
     void OnMouseUp() {
@@ -59,6 +61,10 @@ public class MoveHandle : Singleton<MoveHandle> {
     }
 
     void OnMouseDrag() {
+
+        if (shouldMoveHandle) {
+            return;
+        }
 
         //get world position of screen touch
         Transform imageTarget = transform.parent;
@@ -75,7 +81,18 @@ public class MoveHandle : Singleton<MoveHandle> {
 
         if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + DOCUMENT_HEIGHT) {
             transform.localPosition = currPos;
+        } else if (localPos.z > startPosition.z + DOCUMENT_HEIGHT){
+            DetachImage();
         }
+    }
+
+    void DetachImage() {
+        Debug.Log("Detaching");
+        shouldMoveHandle = true;
+        ImageParent.gameObject.SetActive(false);
+        GetComponent<BoxCollider>().enabled = false;
+        EnableHandleVisuals(false);
+        CreateWorldImage.Instance.Create();
     }
 
     void ResetImagePositions() {
@@ -86,9 +103,21 @@ public class MoveHandle : Singleton<MoveHandle> {
         desiredImagePos = imageBottomPos;
     }
 
-    public void EnableVisuals(bool active) {
+    public void ReactivateImage() {
+        shouldMoveHandle = false;
+        ImageParent.gameObject.SetActive(true);
+        GetComponent<BoxCollider>().enabled = true;
+        EnableHandleVisuals(true);
+    }
+
+    public void EnableImageVisuals(bool active) {
         ImageParent.gameObject.SetActive(active);
         TransParent.gameObject.SetActive(active);
+    }
+
+    public void EnableHandleVisuals(bool active) {
+        HandleImage.gameObject.SetActive(active);
+        ActivateButton.SetActive(!active);
     }
 
     public void OnHandlePositionChanged() {

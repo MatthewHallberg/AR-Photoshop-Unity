@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Vuforia;
 
 public class TargetController : Singleton<TargetController> {
@@ -47,7 +48,7 @@ public class TargetController : Singleton<TargetController> {
         }
 
         //get image target texture from second camera
-        MoveHandle.Instance.EnableVisuals(true);
+        MoveHandle.Instance.EnableImageVisuals(true);
         targetCamera.transform.position = MoveHandle.Instance.ImageParent.position;
         yield return new WaitForEndOfFrame();
         targetCamera.Render();
@@ -72,7 +73,11 @@ public class TargetController : Singleton<TargetController> {
 
         if (success) {
             Debug.Log("Image target created successful...");
-            OnTargetCreated();
+
+            if (!IsTestScene()) {
+                OnTargetCreated();
+            }
+
             Message.Instance.ShowMessage("Tracker created!");
             yield return new WaitForSeconds(1f);
             Message.Instance.CloseMessage();
@@ -83,6 +88,10 @@ public class TargetController : Singleton<TargetController> {
         imageTrackerCreated = true;
         //vuforia will active renderers on detection
         SetRenderersActive(false);
+    }
+
+    bool IsTestScene() {
+        return SceneManager.GetActiveScene().name == "test";
     }
 
     Texture2D RenderTexutreToTexture2D(RenderTexture rTex) {
