@@ -9,7 +9,7 @@ public class VuforiaStateControl : MonoBehaviour {
     }
 
     void OnEnable() {
-        VuforiaRuntimeUtilities.SetAllowedFusionProviders(FusionProviderType.VUFORIA_SENSOR_FUSION);
+        VuforiaRuntimeUtilities.SetAllowedFusionProviders(FusionProviderType.PLATFORM_SENSOR_FUSION);
         Debug.Log("Setting Vuforia Fusion provider to Sensor Fusion.");
         VuforiaARController.Instance.RegisterVuforiaStartedCallback(OnVuforiaStarted);
     }

@@ -92,7 +92,7 @@ public class MoveHandle : Singleton<MoveHandle> {
         ImageParent.gameObject.SetActive(false);
         GetComponent<BoxCollider>().enabled = false;
         EnableHandleVisuals(false);
-        CreateWorldImage.Instance.Create();
+        WorldImageManager.Instance.Create();
     }
 
     void ResetImagePositions() {
