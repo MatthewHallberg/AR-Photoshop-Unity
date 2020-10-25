@@ -7,10 +7,17 @@ public class WorldImageManager : Singleton<WorldImageManager> {
 
     public void Create() {
         Transform handle = MoveHandle.Instance.transform;
-        GameObject worldSpaceImages = Instantiate(holderPrefab, handle.position,handle.rotation);
+        GameObject worldSpaceImages = Instantiate(holderPrefab, handle.position, handle.rotation);
         WorldImageBehavior worldImage = worldSpaceImages.GetComponent<WorldImageBehavior>();
         foreach (Transform img in CreateImage.Instance.transform) {
             GameObject image = Instantiate(img.gameObject, worldImage.imageParent);
+            image.transform.SetAsFirstSibling();
+        }
+    }
+
+    public void ActivateUI(WorldImageBehavior currWorldImage) {
+        foreach (WorldImageBehavior worldImage in FindObjectsOfType<WorldImageBehavior>()) {
+            worldImage.ActivateUI(currWorldImage == worldImage);
         }
     }
 }
