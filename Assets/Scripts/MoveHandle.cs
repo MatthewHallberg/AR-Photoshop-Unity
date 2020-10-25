@@ -21,6 +21,7 @@ public class MoveHandle : Singleton<MoveHandle> {
     Camera mainCam;
     Vector3 startPosition;
     bool shouldMoveHandle = true;
+    bool detached;
 
     protected override void Awake() {
         base.Awake();
@@ -30,6 +31,14 @@ public class MoveHandle : Singleton<MoveHandle> {
     }
 
     void Update() {
+
+        ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * MOVE_SPEED);
+        HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredImageScale, Time.deltaTime * MOVE_SPEED);
+
+        if (detached) {
+            return;
+        }
+
         if (shouldMoveHandle) {
             transform.localPosition = Vector3.Lerp(transform.localPosition, startPosition, Time.deltaTime * MOVE_SPEED);
             if (Vector3.Distance(transform.localPosition, startPosition) < .1) {
@@ -41,9 +50,6 @@ public class MoveHandle : Singleton<MoveHandle> {
                 }
             }
         }
-
-        ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * MOVE_SPEED);
-        HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredImageScale, Time.deltaTime * MOVE_SPEED);
     }
 
     void OnMouseDown() {
@@ -88,11 +94,15 @@ public class MoveHandle : Singleton<MoveHandle> {
 
     void DetachImage() {
         Debug.Log("Detaching");
+        detached = true;
         shouldMoveHandle = true;
         ImageParent.gameObject.SetActive(false);
         GetComponent<BoxCollider>().enabled = false;
         EnableHandleVisuals(false);
         WorldImageManager.Instance.Create();
+        desiredImagePos = imageBottomPos;
+        transform.localPosition = startPosition;
+        distortion.ActivateDistortion(false);
     }
 
     void ResetImagePositions() {
@@ -104,6 +114,7 @@ public class MoveHandle : Singleton<MoveHandle> {
     }
 
     public void ReactivateImage() {
+        detached = false;
         shouldMoveHandle = false;
         ImageParent.gameObject.SetActive(true);
         GetComponent<BoxCollider>().enabled = true;
