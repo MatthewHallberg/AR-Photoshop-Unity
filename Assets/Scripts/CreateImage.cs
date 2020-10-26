@@ -90,14 +90,14 @@ public class CreateImage : Singleton<CreateImage> {
     float PhotoshopLeftToUnityXPos(float left, float width) {
 
         //images coming in mirrored on x? (I inverted the scale on the material)
-        float leftAmount = left / 1024f;
+        float leftAmount = left / DOCUMENT_SIZE;
         float halfImageWidth = width / DOCUMENT_SIZE / 2f;
         return leftAmount - .5f + halfImageWidth;
     }
 
     float PhotoshopTopToUnityYPos(float top, float height) {
 
-        float topAmount = top / 1024f;
+        float topAmount = top / DOCUMENT_SIZE;
         float halfImageHeight = height / DOCUMENT_SIZE / 2f;
         return -topAmount + .5f - halfImageHeight;
     }

@@ -414,7 +414,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 8764165890311255598}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 0.75
+  m_MaxValue: 0.25
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:

@@ -74,6 +74,8 @@ public class TargetController : Singleton<TargetController> {
         if (success) {
             Debug.Log("Image target created successful...");
 
+            MoveHandle.Instance.ReactivateImage();
+
             if (!IsTestScene()) {
                 OnTargetCreated();
             }

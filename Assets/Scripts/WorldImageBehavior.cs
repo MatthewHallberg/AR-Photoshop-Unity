@@ -5,6 +5,7 @@ using UnityEngine;
 public class WorldImageBehavior : MonoBehaviour {
 
     const float SPEED = 6f;
+    const float ANIMATION_FRAME = .0412f;
 
     readonly Vector3 angleOffset = new Vector3(-90, 0, 180);
 
@@ -17,8 +18,6 @@ public class WorldImageBehavior : MonoBehaviour {
     float camDistance;
     bool selected = true;
     Vector3 desiredUIScale;
-
-    Quaternion desiredRot;
 
     void Start() {
         mainCam = Camera.main;
@@ -42,9 +41,6 @@ public class WorldImageBehavior : MonoBehaviour {
         //handle rotation
         transform.LookAt(mainCam.transform);
         transform.rotation = Quaternion.Euler(transform.eulerAngles += angleOffset);
-
-        //interpolate angle
-        transform.rotation = Quaternion.Lerp(transform.rotation, desiredRot, Time.deltaTime * SPEED);
 
         if (Input.GetMouseButtonUp(0)) {
             SelectItem(false);
@@ -96,7 +92,7 @@ public class WorldImageBehavior : MonoBehaviour {
             foreach (Transform image in imageParent) {
                 ActivateAllImages(false);
                 image.gameObject.SetActive(true);
-                yield return new WaitForSeconds(.2f);
+                yield return new WaitForSecondsRealtime(ANIMATION_FRAME);
             }
         }
     }
