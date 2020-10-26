@@ -45,9 +45,6 @@ public class MoveHandle : Singleton<MoveHandle> {
                 transform.localPosition = startPosition;
                 desiredImagePos = imageBottomPos;
                 distortion.ActivateDistortion(false);
-                if (TargetController.Instance.imageTrackerCreated) {
-                    EnableImageVisuals(false);
-                }
             }
         }
     }
@@ -119,6 +116,7 @@ public class MoveHandle : Singleton<MoveHandle> {
         ImageParent.gameObject.SetActive(true);
         GetComponent<BoxCollider>().enabled = true;
         EnableHandleVisuals(true);
+        WorldImageManager.Instance.OpenMenu(false);
     }
 
     public void EnableImageVisuals(bool active) {

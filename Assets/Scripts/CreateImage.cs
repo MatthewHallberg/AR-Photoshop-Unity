@@ -1,10 +1,9 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CreateImage : Singleton<CreateImage> {
 
-    const float DOCUMENT_SIZE = 1024f;
+    const float DOCUMENT_SIZE = 512;
 
     public GameObject imageObject;
 

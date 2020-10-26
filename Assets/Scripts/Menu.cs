@@ -20,6 +20,7 @@ public class Menu : MonoBehaviour {
         SectionMenu.SetActive(true);
         MenuButton.SetActive(false);
         adjustHandle.ActivateHandleVisualizer(true);
+        WorldImageManager.Instance.OpenMenu(false);
     }
 
     public void CloseMenu() {

@@ -4,31 +4,24 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class WorldImageBehavior : MonoBehaviour {
 
-    const float SPEED = 6f;
     const float ANIMATION_FRAME = .0412f;
 
     readonly Vector3 angleOffset = new Vector3(-90, 0, 180);
 
     public Transform imageParent;
-    public GameObject imgStop;
-    public Transform uiParent;
-    public Canvas sliderCanvas;
 
     Camera mainCam;
     float camDistance;
     bool selected = true;
-    Vector3 desiredUIScale;
+    bool isPlaying;
+    float lastSliderVal;
 
     void Start() {
         mainCam = Camera.main;
-        sliderCanvas.worldCamera = mainCam;
-        uiParent.localScale = desiredUIScale;
         SelectItem(true);
     }
 
     void Update() {
-
-        uiParent.localScale = Vector3.Lerp(uiParent.localScale, desiredUIScale, Time.deltaTime * SPEED);
 
         if (!selected) {
             return;
@@ -58,25 +51,20 @@ public class WorldImageBehavior : MonoBehaviour {
         camDistance = Vector3.Distance(transform.position, mainCam.transform.position);
 
         if (selected) {
-            WorldImageManager.Instance.ActivateUI(this);
+            WorldImageManager.Instance.ItemSelected(this, isPlaying, lastSliderVal);
         }
-    }
-
-    public void ActivateUI(bool active) {
-        desiredUIScale = active ? Vector3.one * 10 : Vector3.zero;
     }
 
     public void RemoveItem() {
         Destroy(gameObject);
     }
 
-    public void PlayButtonDown() {
-        StopAllCoroutines();
-        imgStop.SetActive(!imgStop.activeSelf);
-        bool isPlaying = imgStop.activeSelf;
-        if (isPlaying) {
+    public void PlayAnimation(bool shouldPlay) {
+        isPlaying = shouldPlay;
+        if (shouldPlay) {
             StartCoroutine(PlayRoutine());
         } else {
+            StopAllCoroutines();
             ActivateAllImages(true);
         }
     }
@@ -97,7 +85,8 @@ public class WorldImageBehavior : MonoBehaviour {
         }
     }
 
-    public void OnSliderValueChanged(float val) {
+    public void SetLayerDepth(float val) {
+        lastSliderVal = val;
         foreach (Transform image in imageParent) {
             Vector3 pos = image.localPosition;
             pos.z = image.GetSiblingIndex() * val * -1f;
