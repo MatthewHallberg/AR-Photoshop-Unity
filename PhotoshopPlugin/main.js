@@ -107,9 +107,10 @@
 	}
 
 	function CloseSocketConnection(){
-		if (webSocketServer == null){
+		if (webSocketServer != null){
 			webSocketServer.kill();
 			webSocketServer = null;
+			webSocketConnectionMade = false;
 		}
 	}
 
@@ -125,8 +126,8 @@
 		if (webSocketConnectionMade){
 			ExportLayers();
 		} else {
-			GetPhotoshopIPAddress();
 			StartWebSocket();
+			GetPhotoshopIPAddress();
 		}
 	}
 

@@ -39,7 +39,9 @@ public class WebSocketConnection : MonoBehaviour {
     }
 
     public async void StartConnection(string photoshopIP, string port) {
-        websocket = new WebSocket("ws://" + photoshopIP + ":" + port);
+        Dictionary<string, string> headers = new Dictionary<string, string>();
+        headers.Add("User-Agent","Unity3D");
+        websocket = new WebSocket("ws://" + photoshopIP + ":" + port, headers);
 
         websocket.OnOpen += () => {
             Debug.Log("Connection open!");
