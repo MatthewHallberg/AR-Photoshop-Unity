@@ -1,6 +1,6 @@
 # AR-Photoshop-Unity
 
-![Alt text](relative/path/to/img.jpg?raw=true "Title")
+![](readme.png?raw=true "Title")
 
 <b>Instuctions:</b>
 <p>Take the "TestPlugin" folder and place it in Applications->AdobePhotoshop2021->Plug-ins->Generator
