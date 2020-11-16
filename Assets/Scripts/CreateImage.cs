@@ -3,11 +3,9 @@ using UnityEngine;
 
 public class CreateImage : Singleton<CreateImage> {
 
-    const float DOCUMENT_SIZE = 512;
-
     public GameObject imageObject;
 
-    int totalImages;
+    DocumentInfo currDoc;
 
     void Start() {
         WebSocketConnection.messageRecieved += OnImageReceived;
@@ -19,8 +17,8 @@ public class CreateImage : Singleton<CreateImage> {
         WebSocketConnection.messageStarted -= OnNewMessageIncoming;
     }
 
-    public void OnNewMessageIncoming(int numImages) {
-        totalImages = numImages;
+    public void OnNewMessageIncoming(DocumentInfo docInfo) {
+        currDoc = docInfo;
         //clear error state
         TargetController.Instance.imageTransferError = false;
         TargetController.Instance.imageTrackerCreated = false;
@@ -47,10 +45,10 @@ public class CreateImage : Singleton<CreateImage> {
 
         //set layering
         image.transform.SetAsLastSibling();
-        image.GetComponent<Renderer>().material.renderQueue = 3000 + totalImages - transform.childCount;
+        image.GetComponent<Renderer>().material.renderQueue = 3000 + currDoc.layers - transform.childCount;
 
         //convert photoshop coords to unity
-        if (currImage.top == 0 && currImage.bottom == DOCUMENT_SIZE && currImage.left == 0 && currImage.right == DOCUMENT_SIZE) {
+        if (currImage.top == 0 && currImage.bottom == currDoc.height && currImage.left == 0 && currImage.right == currDoc.width) {
             //full screen image dont move on x or y
             image.transform.localPosition = Vector3.zero;
         } else {
@@ -60,7 +58,7 @@ public class CreateImage : Singleton<CreateImage> {
         }
 
         //scale object based on size of photoshop layer
-        image.transform.localScale = new Vector3((float)currImage.width / DOCUMENT_SIZE, (float)currImage.height / DOCUMENT_SIZE, 1);
+        image.transform.localScale = new Vector3((float)currImage.width / currDoc.width, (float)currImage.height / currDoc.height, 1);
 
         //create texture from pixels
         Texture2D tex = new Texture2D(currImage.width, currImage.height, TextureFormat.ARGB32, false);
@@ -89,15 +87,15 @@ public class CreateImage : Singleton<CreateImage> {
     float PhotoshopLeftToUnityXPos(float left, float width) {
 
         //images coming in mirrored on x? (I inverted the scale on the material)
-        float leftAmount = left / DOCUMENT_SIZE;
-        float halfImageWidth = width / DOCUMENT_SIZE / 2f;
+        float leftAmount = left / currDoc.width;
+        float halfImageWidth = width / currDoc.width / 2f;
         return leftAmount - .5f + halfImageWidth;
     }
 
     float PhotoshopTopToUnityYPos(float top, float height) {
 
-        float topAmount = top / DOCUMENT_SIZE;
-        float halfImageHeight = height / DOCUMENT_SIZE / 2f;
+        float topAmount = top / currDoc.height;
+        float halfImageHeight = height / currDoc.height / 2f;
         return -topAmount + .5f - halfImageHeight;
     }
 }

@@ -28,7 +28,7 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
     }
 
-    void OnNewMessageIncoming(int unused) {
+    void OnNewMessageIncoming(DocumentInfo docInfo) {
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
         objectTracker.Stop();
         objectTracker.DestroyAllDataSets(false);

@@ -28,24 +28,29 @@
         generator.getDocumentInfo()
         .then(function (document) {
         	currDocument = document;
-        	SendLayerBuffer(0);
+        	SendDocument();
         });
 	}
 
-	function SendLayerBuffer(layerIndex){
+	function SendDocument(){
+		//first send document info
+	    var docInfo = {
+			width: currDocument.bounds.right,
+			height: currDocument.bounds.bottom,
+			layers: currDocument.layers.length					
+		};
+		webSocketServer.send(JSON.stringify(docInfo));
 
-		var item = currDocument.layers[layerIndex];
+		//loop through all layers and send pixels
+		currDocument.layers.forEach(layer => SendLayer(layer));
+	}
 
-        var options = {clipToDocumentBounds: true};
-		generator.getPixmap(currDocument.id, item.id, options)
+	function SendLayer(layer){
+   		var options = {clipToDocumentBounds: true};
+		generator.getPixmap(currDocument.id, layer.id, options)
 		.then(function(pixmap) {
 
-        	//if this is the first image send number of layers
-        	if (layerIndex === 0){
-				webSocketServer.send(currDocument.layers.length.toString());
-        	}
-
-        	console.log("Sent: " + pixmap.pixels.length);
+			console.log("Sent: " + pixmap.pixels.length);
 
         	var imageLayer = {
   				width: pixmap.width,
@@ -58,11 +63,6 @@
 			};
 
 			webSocketServer.send(JSON.stringify(imageLayer));
-
-        	var nextIndex = layerIndex + 1;
-        	if (nextIndex < currDocument.layers.length){
-        		SendLayerBuffer(nextIndex);
-        	}
 		});
 	}
 

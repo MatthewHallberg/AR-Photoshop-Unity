@@ -8,7 +8,7 @@ public class WebSocketConnection : MonoBehaviour {
     public delegate void OnMessageRecieved(ImageMessage currImage);
     public static OnMessageRecieved messageRecieved;
 
-    public delegate void OnMessageStarted(int numImages);
+    public delegate void OnMessageStarted(DocumentInfo DocInfo);
     public static OnMessageStarted messageStarted;
 
     public delegate void OnMessageCompleted();
@@ -39,8 +39,9 @@ public class WebSocketConnection : MonoBehaviour {
     }
 
     public async void StartConnection(string photoshopIP, string port) {
-        Dictionary<string, string> headers = new Dictionary<string, string>();
-        headers.Add("User-Agent","Unity3D");
+        Dictionary<string, string> headers = new Dictionary<string, string> {
+            { "User-Agent", "Unity3D" }
+        };
         websocket = new WebSocket("ws://" + photoshopIP + ":" + port, headers);
 
         websocket.OnOpen += () => {
@@ -65,7 +66,10 @@ public class WebSocketConnection : MonoBehaviour {
     int numLayers;
     void ParseMessage(byte[] messageData) {
 
-        if (messageData.Length > 10) {
+        //HACK: this is probably not a safe check (maybe decode as string everytime??? idfk its late)
+        if (messageData.Length > 75) {
+        //TODO: Fix this 
+
             numLayers--;
             Message.Instance.ShowMessage("Loading layers...");
             //desierializing large JSON causes app to hang in coroutine so we can do another thread instead.
@@ -73,9 +77,10 @@ public class WebSocketConnection : MonoBehaviour {
             loadImageMessage.Start(messageData);
         } else {
             string message = System.Text.Encoding.UTF8.GetString(messageData);
-            numLayers = int.Parse(message);
-            Message.Instance.ShowMessage("Extracting " + message + " layers...");
-            messageStarted?.Invoke(numLayers);  
+            DocumentInfo docInfo = JsonUtility.FromJson<DocumentInfo>(message);
+            numLayers = docInfo.layers;
+            Message.Instance.ShowMessage("Extracting " + numLayers + " layers...");
+            messageStarted?.Invoke(docInfo);
         }
     }
 
