@@ -8,7 +8,7 @@ public class WorldImageBehavior : MonoBehaviour {
 
     readonly Vector3 angleOffset = new Vector3(-90, 0, 180);
 
-    public Transform imageParent;
+    public Document imageParent;
 
     Camera mainCam;
     float camDistance;
@@ -19,6 +19,20 @@ public class WorldImageBehavior : MonoBehaviour {
     void Start() {
         mainCam = Camera.main;
         SelectItem(true);
+
+        DocumentInfo docInfo = TargetController.Instance.GetCurrDocInfo();
+        imageParent.SetDocumentSize(docInfo);
+        SetImagePosition(docInfo);
+    }
+
+    void SetImagePosition(DocumentInfo docInfo) {
+        //if landscape image move up
+        float yScale = imageParent.transform.localScale.y;
+        if (yScale < 1) {
+            Vector3 tempPos = imageParent.transform.localPosition;
+            tempPos.z += (1 - yScale) / 2;
+            imageParent.transform.localPosition = tempPos;
+        }
     }
 
     void Update() {
@@ -70,14 +84,14 @@ public class WorldImageBehavior : MonoBehaviour {
     }
 
     void ActivateAllImages(bool active) {
-        foreach (Transform image in imageParent) {
+        foreach (Transform image in imageParent.transform) {
             image.gameObject.SetActive(active);
         }
     }
 
     IEnumerator PlayRoutine() {
         while (true) {
-            foreach (Transform image in imageParent) {
+            foreach (Transform image in imageParent.transform) {
                 ActivateAllImages(false);
                 image.gameObject.SetActive(true);
                 yield return new WaitForSecondsRealtime(ANIMATION_FRAME);
@@ -87,7 +101,7 @@ public class WorldImageBehavior : MonoBehaviour {
 
     public void SetLayerDepth(float val) {
         lastSliderVal = val;
-        foreach (Transform image in imageParent) {
+        foreach (Transform image in imageParent.transform) {
             Vector3 pos = image.localPosition;
             pos.z = image.GetSiblingIndex() * val * -1f;
             image.localPosition = pos;

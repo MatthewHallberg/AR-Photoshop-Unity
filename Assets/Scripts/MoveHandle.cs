@@ -4,7 +4,6 @@ using UnityEngine;
 public class MoveHandle : Singleton<MoveHandle> {
 
     const float MOVE_SPEED = 15;
-    const float DOCUMENT_HEIGHT = 1f;
 
     public Transform ImageParent;
     public GameObject ActivateButton;
@@ -13,10 +12,11 @@ public class MoveHandle : Singleton<MoveHandle> {
     public Transform HandleImage;
     public DistortionController distortion;
 
+    float documentHeight = 1;
     Vector3 imageTopPos;
     Vector3 imageBottomPos;
     Vector3 desiredImagePos;
-    Vector3 desiredImageScale = new Vector3(.3f, .3f, .3f);
+    Vector3 desiredHandleScale = new Vector3(.3f, .3f, .3f);
 
     Camera mainCam;
     Vector3 startPosition;
@@ -33,7 +33,7 @@ public class MoveHandle : Singleton<MoveHandle> {
     void Update() {
 
         ImageParent.localPosition = Vector3.Lerp(ImageParent.localPosition, desiredImagePos, Time.deltaTime * MOVE_SPEED);
-        HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredImageScale, Time.deltaTime * MOVE_SPEED);
+        HandleImage.localScale = Vector3.Lerp(HandleImage.localScale, desiredHandleScale, Time.deltaTime * MOVE_SPEED);
 
         if (detached) {
             return;
@@ -52,7 +52,7 @@ public class MoveHandle : Singleton<MoveHandle> {
     void OnMouseDown() {
         shouldMoveHandle = false;
         desiredImagePos = imageTopPos;
-        desiredImageScale.x = .2f;
+        desiredHandleScale.x = .2f;
         distortion.ActivateDistortion(true);
 
         EnableImageVisuals(true);
@@ -60,7 +60,7 @@ public class MoveHandle : Singleton<MoveHandle> {
 
     void OnMouseUp() {
         shouldMoveHandle = true;
-        desiredImageScale.x = .3f;
+        desiredHandleScale.x = .3f;
     }
 
     void OnMouseDrag() {
@@ -82,9 +82,9 @@ public class MoveHandle : Singleton<MoveHandle> {
         Vector3 currPos = startPosition;
         currPos.z = localPos.z;
 
-        if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + DOCUMENT_HEIGHT) {
+        if (localPos.z >= startPosition.z && localPos.z <= startPosition.z + documentHeight) {
             transform.localPosition = currPos;
-        } else if (localPos.z > startPosition.z + DOCUMENT_HEIGHT){
+        } else if (localPos.z > startPosition.z + documentHeight) {
             DetachImage();
         }
     }
@@ -104,7 +104,7 @@ public class MoveHandle : Singleton<MoveHandle> {
 
     void ResetImagePositions() {
         startPosition = transform.localPosition;
-        imageTopPos = ImageParent.localPosition;
+        SetDocumentHeight();
         ImageParent.position = TransparentImages.position;
         imageBottomPos = ImageParent.localPosition;
         desiredImagePos = imageBottomPos;
@@ -117,8 +117,15 @@ public class MoveHandle : Singleton<MoveHandle> {
         GetComponent<BoxCollider>().enabled = true;
         EnableHandleVisuals(true);
         WorldImageManager.Instance.OpenMenu(false);
+        SetDocumentHeight();
     }
 
+    void SetDocumentHeight() {
+        documentHeight = ImageParent.localScale.y;
+        float startZPos = (documentHeight + .1f) * -1f;
+        imageTopPos = new Vector3(0, 0, startZPos);
+    }
+     
     public void EnableImageVisuals(bool active) {
         ImageParent.gameObject.SetActive(active);
         TransParent.gameObject.SetActive(active);

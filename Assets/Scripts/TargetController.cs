@@ -8,10 +8,15 @@ public class TargetController : Singleton<TargetController> {
 
     public readonly float ImageTargetSizeMeters = 0.2f;
 
+    public Document ImageParent;
+    public Document TransCheckerParent;
+
     public bool imageTransferError { get; set; }
     public bool imageTrackerCreated { get; set; }
 
     public Camera targetCamera;
+
+    DocumentInfo currDoc;
 
     void OnEnable() {
         WebSocketConnection.messageComplete += CreateImageTarget;
@@ -28,10 +33,17 @@ public class TargetController : Singleton<TargetController> {
         targetCamera.gameObject.SetActive(false);
     }
 
+    public DocumentInfo GetCurrDocInfo() {
+        return currDoc;
+    }
+
     void OnNewMessageIncoming(DocumentInfo docInfo) {
+        currDoc = docInfo;
         var objectTracker = TrackerManager.Instance.GetTracker<ObjectTracker>();
         objectTracker.Stop();
         objectTracker.DestroyAllDataSets(false);
+        ImageParent.SetDocumentSize(docInfo);
+        TransCheckerParent.SetDocumentSize(docInfo);
     }
 
     void CreateImageTarget() {

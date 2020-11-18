@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 5841207356830536899}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_Children: []
   m_Father: {fileID: 5841207357861011200}
   m_RootOrder: 0
@@ -90,6 +90,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5841207357214751973}
+  - component: {fileID: 9018649886650913643}
   m_Layer: 0
   m_Name: ImageParent
   m_TagString: Untagged
@@ -105,12 +106,24 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5841207357214751972}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: -1.1040001}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalPosition: {x: 0, y: 0, z: -0.55}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5841207357861011200}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &9018649886650913643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5841207357214751972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bce678563ace7466baf7696c4821a3da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5841207357861011453
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,7 +151,7 @@ Transform:
   m_GameObject: {fileID: 5841207357861011453}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.07180004, z: 0.6999999}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_Children:
   - {fileID: 5841207356830536900}
   - {fileID: 5841207357214751973}
@@ -156,8 +169,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.081085, y: 0.10000002, z: 2}
-  m_Center: {x: 0.013465583, y: 1.2700941e-16, z: -0.52}
+  m_Size: {x: 1.1, y: 0.10000002, z: 2}
+  m_Center: {x: 0, y: 0, z: -0.25}
 --- !u!114 &5841207357861011454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,7 +183,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba853daae609246e8b8497a627f35d0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  imageParent: {fileID: 5841207357214751973}
-  imgStop: {fileID: 0}
-  uiParent: {fileID: 0}
-  sliderCanvas: {fileID: 0}
+  imageParent: {fileID: 9018649886650913643}
