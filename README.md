@@ -16,4 +16,4 @@ so you may need to turn off cellular data to get the broadcast message???
 
 Caveats:
 <p>1.)This only works if the entire document has enough feature points to track so blank colors or designs without a lot of contrast will not be tracked by the app.
-<p>2.)Currently this is only set up to work with Photoshop docs that are 512x512 pixels.
+<p>2.)Currently I am not doing anything with the zoom level of the document so everytime you change the document size you have to reposition the handle from the main menu.
