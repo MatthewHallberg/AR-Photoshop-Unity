@@ -22,10 +22,13 @@ MonoBehaviour:
     virtualSceneScaleFactor: 1
     useDelayedLoadingObjectTargets: 0
     modelTargetRecoWhileExtendedTracked: 0
-    version: 9.5.4
-    eulaAcceptedVersions: '{"Values":["7.2","7.5","7.1","8.0","7.7","8.1","0.0","8.3","8.5","8.6","9.0","9.1","9.2","9.3","9.4","9.5"]}'
+    shareRecordingsInITunes: 0
+    version: 9.8.5
+    eulaAcceptedVersions: '{"Values":["7.2","7.5","7.1","8.0","7.7","8.1","0.0","8.3","8.5","8.6","9.0","9.1","9.2","9.3","9.4","9.5","9.6","9.7","9.8"]}'
   database:
     disableModelExtraction: 1
+  shaders:
+    depthMaskShader: {fileID: 4800000, guid: 1ce7eb78425fb1540838bc9d5d95857a, type: 3}
   videoBackground:
     numDivisions: 2
     videoBackgroundShader: {fileID: 4800000, guid: f40623b353e2f1943b1b3ba42975db7a,
@@ -41,3 +44,5 @@ MonoBehaviour:
     playModeType: 0
   webcam:
     renderTextureLayer: 30
+  packageInformation:
+    ARFoundationVersion: 
