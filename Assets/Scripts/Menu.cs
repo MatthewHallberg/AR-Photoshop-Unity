@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class Menu : MonoBehaviour {
+public class Menu : Singleton<Menu> {
 
     public GameObject SectionMenu;
     public GameObject MenuButton;
@@ -11,23 +11,17 @@ public class Menu : MonoBehaviour {
     public Slider handleSlider;
 
     void Start() {
-        CloseMenu();
-        SetHandleSlider();
-        SetOccluderSlider();
+        ActivateMenuVisuals(false);
     }
 
     public void OpenMenu() {
-        SectionMenu.SetActive(true);
-        MenuButton.SetActive(false);
-        adjustHandle.ActivateHandleVisualizer(true);
+        ActivateMenuVisuals(true);
         WorldImageManager.Instance.OpenMenu(false);
     }
 
     public void CloseMenu() {
-        SectionMenu.SetActive(false);
-        MenuButton.SetActive(true);
-        adjustHandle.ActivateHandleVisualizer(false);
-        adjustHandle.SaveChanges();
+        ActivateMenuVisuals(false);
+        adjustHandle.SaveChanges(occluderSlider.value, handleSlider.value);
     }
 
     public void OnHandleSliderChanged(float val) {
@@ -38,17 +32,21 @@ public class Menu : MonoBehaviour {
         adjustHandle.ChangeOccluder(val);
     }
 
-    void SetHandleSlider() {
-        AdjustmentInfo handleInfo = adjustHandle.GetHandleInfo();
+    public void SetHandleSlider(AdjustmentInfo handleInfo) {
         handleSlider.value = handleInfo.CurrValue;
         handleSlider.minValue = handleInfo.Min;
         handleSlider.maxValue = handleInfo.Max;
     }
 
-    void SetOccluderSlider() {
-        AdjustmentInfo occluderInfo = adjustHandle.GetOccluderInfo();
+    public void SetOccluderSlider(AdjustmentInfo occluderInfo) {
         occluderSlider.value = occluderInfo.CurrValue;
         occluderSlider.minValue = occluderInfo.Min;
         occluderSlider.maxValue = occluderInfo.Max;
+    }
+
+    void ActivateMenuVisuals(bool active) {
+        SectionMenu.SetActive(active);
+        adjustHandle.ActivateHandleVisualizer(active);
+        MenuButton.SetActive(!active);
     }
 }

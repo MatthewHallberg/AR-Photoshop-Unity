@@ -15,10 +15,10 @@ public class AdjustHandle : MonoBehaviour {
     public Transform distortTop;
     public Transform distortBottom;
 
-    void Awake() {
+    void Start() {
         //save values on first load
         if (!PlayerPrefs.HasKey(OCCLUDER_KEY)) {
-            SaveChanges();
+            SaveChanges(occluderInfo.CurrValue, handleInfo.CurrValue);
         }
 
         LoadSavedValues();
@@ -30,7 +30,7 @@ public class AdjustHandle : MonoBehaviour {
         Occluder.localScale = tempScale;
         occluderInfo.CurrValue = val;
         //move bottom distortion based on occluder scale
-        float amount = Occluder.localScale.y + (distortBottom.localScale.y/2);
+        float amount = Occluder.localScale.y + (distortBottom.localScale.y / 2);
         Vector3 bottomPos = distortBottom.localPosition;
         bottomPos.z = Occluder.localPosition.z - amount;
         distortBottom.localPosition = bottomPos;
@@ -44,33 +44,28 @@ public class AdjustHandle : MonoBehaviour {
         moveHandle.OnHandlePositionChanged();
     }
 
-    public AdjustmentInfo GetHandleInfo() {
-        return handleInfo;
-    }
-
-    public AdjustmentInfo GetOccluderInfo() {
-        return occluderInfo;
-    }
-
     public void ActivateHandleVisualizer(bool active) {
         occluderVisualizer.SetActive(active);
     }
 
-    public void SaveChanges() {
-        SaveOccluderWidth();
-        SaveHandleHeight();
+    public void SaveChanges(float occluderWidth, float handleHeight) {
+        SaveOccluderWidth(occluderWidth);
+        SaveHandleHeight(handleHeight);
+        PlayerPrefs.Save();
     }
 
     void LoadSavedValues() {
         ChangeOccluder(PlayerPrefs.GetFloat(OCCLUDER_KEY));
         ChangeHandle(PlayerPrefs.GetFloat(HANDLE_KEY));
+        Menu.Instance.SetHandleSlider(handleInfo);
+        Menu.Instance.SetOccluderSlider(occluderInfo);
     }
 
-    void SaveOccluderWidth() {
-        PlayerPrefs.SetFloat(OCCLUDER_KEY, occluderInfo.CurrValue);
+    void SaveOccluderWidth(float width) {
+        PlayerPrefs.SetFloat(OCCLUDER_KEY, width);
     }
 
-    void SaveHandleHeight() {
-        PlayerPrefs.SetFloat(HANDLE_KEY, handleInfo.CurrValue);
+    void SaveHandleHeight(float height) {
+        PlayerPrefs.SetFloat(HANDLE_KEY, height);
     }
 }
